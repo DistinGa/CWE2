@@ -58,22 +58,26 @@ public sealed class GameEventSystem
     #region Invokes
     public void InvokeTurnEvents()
     {
-        _TurnEvents();
+        if(_TurnEvents != null)
+            _TurnEvents();
     }
 
     public void InvokeMonthEvents()
     {
-        _MonthEvents();
+        if (_MonthEvents != null)
+            _MonthEvents();
     }
 
     public void InvokeEndYearEvents()
     {
-        _EndYearEvents();
+        if (_EndYearEvents != null)
+            _EndYearEvents();
     }
 
     public void InvokeNewYearEvents()
     {
-        _NewYearEvents();
+        if (_NewYearEvents != null)
+            _NewYearEvents();
     }
     #endregion
 

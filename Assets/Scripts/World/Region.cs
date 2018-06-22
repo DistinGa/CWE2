@@ -37,19 +37,19 @@ namespace World
             get { return "Название из ассета"; }
         }
 
-        public SeaPool SeaPool
+        public int SeaPoolID
         {
             get
             {
-                return World_Op.TheWorld.GetSeaPool(_SeaPoolID);
+                return _SeaPoolID;
             }
         }
 
-        public MilitaryBase MilitaryBase
+        public int MilitaryBaseID
         {
             get
             {
-                return World_Op.TheWorld.GetMilitaryBase(_RegData._MilBaseID);
+                return _RegData._MilBaseID;
             }
         }
 
@@ -76,7 +76,7 @@ namespace World
                 }
                 else
                 {
-                    if (_RegData.DevLevel > 0)
+                    if (_RegData.ProsperityLevel > 0)
                         add = Random.Range(ModEditor.ModProperties.Instance.GNP_HighDevLevel_Min, ModEditor.ModProperties.Instance.GNP_HighDevLevel_Max + 1);
                     else
                         add = Random.Range(ModEditor.ModProperties.Instance.GNP_LowDevLevel_Min, ModEditor.ModProperties.Instance.GNP_LowDevLevel_Max + 1);
@@ -186,15 +186,20 @@ namespace World
                 throw new System.Exception("AddInfluence Exception!");
         }
 
-        public void AddDevLevel(int Amount)
+        public void AddProsperity(int Amount)
         {
-            _RegData.DevLevel += Amount;
-            _RegData.DevLevel = Mathf.Clamp(_RegData.DevLevel, -ModEditor.ModProperties.Instance.RadProspMaxValue, ModEditor.ModProperties.Instance.RadProspMaxValue);
+            _RegData.ProsperityLevel += Amount;
+            _RegData.ProsperityLevel = Mathf.Clamp(_RegData.ProsperityLevel, -ModEditor.ModProperties.Instance.RadProspMaxValue, ModEditor.ModProperties.Instance.RadProspMaxValue);
         }
 
         public void AddSpy(int AuthID, int Amount)
         {
             _RegData.Spies[AuthID] += Amount;
+        }
+
+        public void RegisterMilBase(int BaseID)
+        {
+            _RegData._MilBaseID = BaseID;
         }
     }
 
@@ -203,12 +208,11 @@ namespace World
         public int _MilBaseID;
         public int Score;
         public int Authority, OppAuthority;
-        public List<int> Influence;
+        public List<int> Influence, Spies;
         public Dictionary<int, int> GovForces, OppForces;  //Key - MilitaryUnit ID; Value - amount
-        public Dictionary<int, int> Spies;  //Key - Authority ID; Value - amount
         public int GNP;
         public List<int> GNPhistory;
-        public int DevLevel;
+        public int ProsperityLevel;
 
     }
 }

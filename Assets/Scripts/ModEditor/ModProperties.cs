@@ -11,6 +11,7 @@ namespace ModEditor
         //Ежегодный прирост GNP в неконтролируемых странах.
         public int GNP_Neutral_Min, GNP_Neutral_Max, GNP_HighDevLevel_Min, GNP_HighDevLevel_Max, GNP_LowDevLevel_Min, GNP_LowDevLevel_Max;
         public int RadProspMaxValue;    //+/- для Radicalizm и Prosperity параметра DevLevel
+        public int DefaultMilBaseCapacity;  //Вместимость новой базы
 
         private ModProperties()
         {
