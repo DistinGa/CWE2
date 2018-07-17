@@ -4,9 +4,9 @@ using System.Collections.Generic;
 
 namespace World
 {
-    public class MilitariPool
+    public class MilitaryPool
     {
-        Dictionary<int, int> _MilForces;  //Key - MilitaryUnit ID; Value - amount
+        protected Dictionary<int, int> _MilForces;  //Key - MilitaryUnit ID; Value - amount
 
         public Dictionary<int, int> GetUnits()
         {
@@ -19,7 +19,7 @@ namespace World
             return _MilForces[indx];
         }
 
-        //Возвращает количество всех военны юнитов в пуле
+        //Возвращает общее количество всех военных юнитов в пуле
         public int GetUnitsAmount()
         {
             int res = 0;
@@ -39,18 +39,26 @@ namespace World
         }
     }
 
-    public class SeaPool: MilitariPool
+    public class SeaPool
     {
-        Dictionary<int, int> _MilForces;  //Key - MilitaryUnit ID; Value - amount
+        List<MilitaryPool> _NavyList; //Список флотов контролируемых стран. Index - Authority
 
+        public SeaPool()
+        {
+            _NavyList = new List<MilitaryPool>();
+        }
+
+        public MilitaryPool GetNavy(int Authority)
+        {
+            return _NavyList[Authority];
+        }
     }
 
-    public class MilitaryBase: MilitariPool
+    public class MilitaryBase: MilitaryPool
     {
         int _RegID;
         int _AuthID;
         int _Capacity;
-        Dictionary<int, int> _MilForces;  //Key - MilitaryUnit ID; Value - amount
 
         public MilitaryBase(int RegID, int AuthID, int Capacity)
         {
@@ -66,10 +74,16 @@ namespace World
             get { return _Capacity; }
         }
 
-        //Свободное место в базе
+        //Свободное место на базе
         public int FreeCapacity
         {
             get { return Capacity - GetUnitsAmount(); }
+        }
+
+        public int AuthID
+        {
+            set { _AuthID = value; }
+            get { return _AuthID; }
         }
 
         public void AddCapacity(int Amount)
@@ -80,6 +94,7 @@ namespace World
 
     public class UnitOnTheWay
     {
+        int _Authority; //Чьи это юниты
         DestinationTypes _DestType;
         int _DestID;
         int _UnitID;
@@ -87,8 +102,9 @@ namespace World
         int _LifeTime;
         Action<UnitOnTheWay> _Deleter;
 
-        public UnitOnTheWay(DestinationTypes DestType, int DestID, int UnitID, int Amount, int LifeTime, Action<UnitOnTheWay> Deleter)
+        public UnitOnTheWay(int Authority, DestinationTypes DestType, int DestID, int UnitID, int Amount, int LifeTime, Action<UnitOnTheWay> Deleter)
         {
+            _Authority = Authority;
             _DestType = DestType;
             _DestID = DestID;
             _UnitID = UnitID;
@@ -118,10 +134,22 @@ namespace World
                     World.TheWorld.GetMainMilPool(_DestID).AddUnits(_UnitID, _Amount);
                     break;
                 case DestinationTypes.SeaPool:
-                    World.TheWorld.GetSeaPool(_DestID).AddUnits(_UnitID, _Amount);
+                    World.TheWorld.GetSeaPool(_DestID).GetNavy(_Authority).AddUnits(_UnitID, _Amount);
                     break;
                 case DestinationTypes.MilitaryBase:
-                    World.TheWorld.GetMilitaryBase(_DestID).AddUnits(_UnitID, _Amount);
+                    MilitaryBase mb = World.TheWorld.GetMilitaryBase(_DestID);
+                    if (mb.FreeCapacity >= _Amount)
+                        mb.AddUnits(_UnitID, _Amount);
+                    else
+                    {
+                        //Юнитов пришло больше, чем свободного места на базе. Заполняем базу, "лишних" юнитов отправляем в основной пул.
+                        int fc = mb.FreeCapacity;
+                        mb.AddUnits(_UnitID, fc);
+                        _LifeTime = World.TheWorld.GetMovementTime(_DestType, _DestID, DestinationTypes.MainPool, _Authority);
+                        _DestType = DestinationTypes.MainPool;
+                        _DestID = mb.AuthID;
+                        _Amount -= fc;
+                    }
                     break;
                 case DestinationTypes.Region:
 
@@ -130,7 +158,7 @@ namespace World
                     break;
             }
 
-            if (_Deleter != null)
+            if (_Deleter != null && _LifeTime == 0)
                 _Deleter(this);
         }
     }

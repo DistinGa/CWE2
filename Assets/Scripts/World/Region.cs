@@ -189,7 +189,7 @@ namespace World
         public void AddProsperity(int Amount)
         {
             _RegData.ProsperityLevel += Amount;
-            _RegData.ProsperityLevel = Mathf.Clamp(_RegData.ProsperityLevel, -ModEditor.ModProperties.Instance.RadProspMaxValue, ModEditor.ModProperties.Instance.RadProspMaxValue);
+            _RegData.ProsperityLevel = Mathf.Clamp(_RegData.ProsperityLevel, -ModEditor.ModProperties.Instance.ProspMaxValue, ModEditor.ModProperties.Instance.ProspMaxValue);
         }
 
         public void AddSpy(int AuthID, int Amount)
@@ -207,7 +207,8 @@ namespace World
     {
         public int _MilBaseID;
         public int Score;
-        public int Authority, OppAuthority;
+        public int Authority;
+        public int OppAuthority;    //Чьи войска в OppForces
         public List<int> Influence, Spies;
         public Dictionary<int, int> GovForces, OppForces;  //Key - MilitaryUnit ID; Value - amount
         public int GNP;

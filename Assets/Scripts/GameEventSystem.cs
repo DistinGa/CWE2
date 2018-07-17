@@ -1,14 +1,13 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-public delegate void SimpleEvent();
 
 public sealed class GameEventSystem
 {
     private static GameEventSystem _Instance;
 
-    private SimpleEvent _TurnEvents, _MonthEvents, _EndYearEvents, _NewYearEvents;
+    private Action _TurnEvents, _EndMonthEvents, _NewMonthEvents, _EndYearEvents, _NewYearEvents;
 
     public static GameEventSystem Instance
     {
@@ -21,8 +20,8 @@ public sealed class GameEventSystem
         }
     }
 
-    #region Subscribes
-    public void SubscribeOnTurn(SimpleEvent dlg, bool Subscribe = true)
+    #region Common
+    public void SubscribeOnTurn(Action dlg, bool Subscribe = true)
     {
         if(Subscribe)
             _TurnEvents += dlg;
@@ -30,15 +29,23 @@ public sealed class GameEventSystem
             _TurnEvents -= dlg;
     }
 
-    public void SubscribeOnMonth(SimpleEvent dlg, bool Subscribe = true)
+    public void SubscribeOnEndMonth(Action dlg, bool Subscribe = true)
     {
         if (Subscribe)
-            _MonthEvents += dlg;
+            _EndMonthEvents += dlg;
         else
-            _MonthEvents -= dlg;
+            _EndMonthEvents -= dlg;
     }
 
-    public void SubscribeOnEndYear(SimpleEvent dlg, bool Subscribe = true)
+    public void SubscribeOnNewMonth(Action dlg, bool Subscribe = true)
+    {
+        if (Subscribe)
+            _NewMonthEvents += dlg;
+        else
+            _NewMonthEvents -= dlg;
+    }
+
+    public void SubscribeOnEndYear(Action dlg, bool Subscribe = true)
     {
         if (Subscribe)
             _EndYearEvents += dlg;
@@ -46,26 +53,30 @@ public sealed class GameEventSystem
             _EndYearEvents -= dlg;
     }
 
-    public void SubscribeOnNewYear(SimpleEvent dlg, bool Subscribe = true)
+    public void SubscribeOnNewYear(Action dlg, bool Subscribe = true)
     {
         if (Subscribe)
             _NewYearEvents += dlg;
         else
             _NewYearEvents -= dlg;
     }
-    #endregion
 
-    #region Invokes
     public void InvokeTurnEvents()
     {
         if(_TurnEvents != null)
             _TurnEvents();
     }
 
-    public void InvokeMonthEvents()
+    public void InvokeEndMonthEvents()
     {
-        if (_MonthEvents != null)
-            _MonthEvents();
+        if (_EndMonthEvents != null)
+            _EndMonthEvents();
+    }
+
+    public void InvokeNewMonthEvents()
+    {
+        if (_NewMonthEvents != null)
+            _NewMonthEvents();
     }
 
     public void InvokeEndYearEvents()
@@ -81,5 +92,26 @@ public sealed class GameEventSystem
     }
     #endregion
 
-
+    #region Budget
+    public void SpendingComplete(SpendsSubjects Subject, int UnitID, int Authority)
+    {
+        World.World wrld = World.World.TheWorld;
+        switch (Subject)
+        {
+            case SpendsSubjects.MilitaryUnit:
+                wrld.GetMainMilPool(Authority).AddUnits(UnitID, 1);
+                break;
+            case SpendsSubjects.CosmoUnit:
+                break;
+            case SpendsSubjects.Upgrade:
+                break;
+            case SpendsSubjects.TechMilitary:
+                break;
+            case SpendsSubjects.TechProduction:
+                break;
+            default:
+                break;
+        }
+    }
+    #endregion
 }
