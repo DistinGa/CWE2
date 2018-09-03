@@ -21,7 +21,7 @@ namespace ModEditor
         public float MilitarySystemCostIncreasePerUpgrade;  //Увеличение стоимости производства военной системы при апгрейде
         public float MilitarySystemCostDecreaseByUpgrade;   //Снижение стоимости производства военной системы от апгрейда типа 4
         public int MilitarySystemCapacityUpgrade;   //Увеличение вместимости (body) или уменьшение занимаемого места других систем при апгрейде
-        public int MilitarySystemParamIncreaseByUpgrade;    //На сколько увеличивается один из двух параметров системы при апгрейде.
+        public int MilitarySystemParamIncreaseByUpgrade;    //На сколько увеличивается один из двух основны параметров системы при апгрейде.
 
         private ModProperties()
         {
