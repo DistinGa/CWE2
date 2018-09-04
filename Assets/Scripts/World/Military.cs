@@ -100,9 +100,9 @@ namespace World
             ModEditor.ModProperties modProperties = ModEditor.ModProperties.Instance;
 
             if (upgradeType == 4)
-                Cost -= Cost * modProperties.MilitarySystemCostDecreaseByUpgrade;
+                Cost -= - InitCost * modProperties.MilitarySystemCostDecreaseByUpgrade;
             else
-                Cost += InitCost * modProperties.MilitarySystemCostIncreasePerUpgrade;
+                Cost += + InitCost * modProperties.MilitarySystemCostIncreasePerUpgrade;
 
             switch (upgradeType)
             {
@@ -113,7 +113,7 @@ namespace World
                     Stealth += modProperties.MilitarySystemParamIncreaseByUpgrade;
                     break;
                 case 3: //Апгрейд вместимости
-                    Capacity *= modProperties.MilitarySystemCapacityUpgrade;
+                    Capacity += modProperties.MilitarySystemCapacityUpgrade;
                     break;
                 case 4: //Снижение стоимости производства
                     break;
