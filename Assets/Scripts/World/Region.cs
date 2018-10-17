@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
+using nsEventSystem;
 using UnityEngine;
 
-namespace World
+namespace nsWorld
 {
     public class Region_Op
     {
@@ -20,16 +22,16 @@ namespace World
             _SeaPoolID = SeaPoolID;
             _Flags = Flags;
 
-            GameEventSystem.Instance.SubscribeOnTurn(Turn);
-            GameEventSystem.Instance.SubscribeOnEndYear(EndOfYear);
-            GameEventSystem.Instance.SubscribeOnNewYear(NewYear);
+            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
+            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
+            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
         }
 
         ~Region_Op()
         {
-            GameEventSystem.Instance.SubscribeOnTurn(Turn, false);
-            GameEventSystem.Instance.SubscribeOnEndYear(EndOfYear, false);
-            GameEventSystem.Instance.SubscribeOnNewYear(NewYear, false);
+            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
+            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
+            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
         }
 
         public string RegName
@@ -53,33 +55,33 @@ namespace World
             }
         }
 
-        private void Turn()
+        private void OnTurn(object sender, EventArgs e)
         {
-
         }
 
-        private void EndOfYear()
+        private void EndOfYear(object sender, EventArgs e)
         {
             if (_RegController != null)  //Только для неконтроллируемых регионов
                 _RegData.GNPhistory.Add(_RegData.GNP);
         }
 
-        private void NewYear()
+        private void NewYear(object sender, EventArgs e)
         {
             if (_RegController != null)  //Только для неконтролируемых регионов
             {
                 //Изменение GNP
                 int add = 0;
+                System.Random rnd = new System.Random();
                 if (_RegData.Authority == 0)
                 {
-                    add = Random.Range(ModEditor.ModProperties.Instance.GNP_Neutral_Min, ModEditor.ModProperties.Instance.GNP_Neutral_Max + 1);
+                    add = rnd.Next(ModEditor.ModProperties.Instance.GNP_Neutral_Min, ModEditor.ModProperties.Instance.GNP_Neutral_Max + 1);
                 }
                 else
                 {
                     if (_RegData.ProsperityLevel > 0)
-                        add = Random.Range(ModEditor.ModProperties.Instance.GNP_HighDevLevel_Min, ModEditor.ModProperties.Instance.GNP_HighDevLevel_Max + 1);
+                        add = rnd.Next(ModEditor.ModProperties.Instance.GNP_HighDevLevel_Min, ModEditor.ModProperties.Instance.GNP_HighDevLevel_Max + 1);
                     else
-                        add = Random.Range(ModEditor.ModProperties.Instance.GNP_LowDevLevel_Min, ModEditor.ModProperties.Instance.GNP_LowDevLevel_Max + 1);
+                        add = rnd.Next(ModEditor.ModProperties.Instance.GNP_LowDevLevel_Min, ModEditor.ModProperties.Instance.GNP_LowDevLevel_Max + 1);
                 }
 
                 _RegData.GNP += add;
@@ -89,9 +91,9 @@ namespace World
         public void AddInfluence(int InfID, int Amount)
         {
             if (Amount > 0)
-                Amount = Mathf.Min(Amount, 100 - _RegData.Influence[InfID]);
+                Amount = Math.Min(Amount, 100 - _RegData.Influence[InfID]);
             else
-                Amount = Mathf.Max(Amount, -_RegData.Influence[InfID]);
+                Amount = Math.Max(Amount, -_RegData.Influence[InfID]);
 
             if (Amount == 0)
                 return;
@@ -192,11 +194,6 @@ namespace World
             _RegData.ProsperityLevel = Mathf.Clamp(_RegData.ProsperityLevel, -ModEditor.ModProperties.Instance.ProspMaxValue, ModEditor.ModProperties.Instance.ProspMaxValue);
         }
 
-        public void AddSpy(int AuthID, int Amount)
-        {
-            _RegData.Spies[AuthID] += Amount;
-        }
-
         public void RegisterMilBase(int BaseID)
         {
             _RegData._MilBaseID = BaseID;
@@ -205,15 +202,14 @@ namespace World
 
     public class Region_Ds
     {
-        public int _MilBaseID;
+        public int _MilBaseID = -1;
         public int Score;
         public int Authority;
         public int OppAuthority;    //Чьи войска в OppForces
-        public List<int> Influence, Spies;
+        public List<int> Influence, Radicals;
         public Dictionary<int, int> GovForces, OppForces;  //Key - MilitaryUnit ID; Value - amount
         public int GNP;
         public List<int> GNPhistory;
         public int ProsperityLevel;
-
     }
 }

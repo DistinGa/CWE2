@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using World;
+using nsWorld;
+using nsEventSystem;
 using UnityEngine;
 
 public enum SpendsSource
@@ -41,17 +43,39 @@ public class RegionController
         _Color = Color;
         _HomelandID = HomelandID;
 
-        GameEventSystem.Instance.SubscribeOnEndMonth(Turn);
-        GameEventSystem.Instance.SubscribeOnEndMonth(EndOfMonth);
+        GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, Turn);
+        GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
     }
 
     ~RegionController()
     {
-        GameEventSystem.Instance.SubscribeOnEndMonth(Turn, false);
-        GameEventSystem.Instance.SubscribeOnEndMonth(EndOfMonth, false);
+        GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, Turn);
+        GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
     }
 
-    private void Turn()
+    public int Prestige
+    {
+        get { return _RegCData.Prestige; }
+
+        set
+        {
+            _RegCData.Prestige = value;
+            if (_RegCData.Prestige < 0)
+                throw new Exception("Prestige < 0");
+        }
+    }
+
+    public double NatFund
+    {
+        get { return _RegCData.NatFund; }
+
+        set
+        {
+            _RegCData.NatFund = value;
+        }
+    }
+
+    private void Turn(object sender, EventArgs e)
     {
         //Производство юнитов, апгрейд и изучение технологий
         for (int i = _RegCData.Spends.Count - 1; i >= 0; i--)
@@ -72,7 +96,7 @@ public class RegionController
         _RegCData.PrivateEconomy += GetSpends(SpendsSource.Private) * (1f + 0.01f * ModEditor.ModProperties.Instance.PrivateLoadedWeeklyGrow);
     }
 
-    private void EndOfMonth()
+    private void EndOfMonth(object sender, EventArgs e)
     {
         //Обновление бюджета
         MonthBudgetChahge();
@@ -137,6 +161,27 @@ public class RegionController
             * 0.01d * (100d + _RegCData.ProsperityLevel * ModEditor.ModProperties.Instance.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
     }
 
+    /// <summary>
+    /// Оплата чего-либо. Может производиться за счёт Престижа или из Нацфонда.
+    /// </summary>
+    /// <param name="SourceID">0 - из нацфонда; 1 - из престижа</param>
+    /// <param name="Cost">Стоимость</param>
+    /// <returns>true, если оплата прошла успешно</returns>
+    public bool PayCount(int SourceID, double Cost)
+    {
+        if (SourceID == 1 && Prestige < (int)Cost)
+            return false; //Не хватает престижа.
+
+        if (SourceID == 0)
+            NatFund -= Cost;   //Может уходить в минус
+        else
+            Prestige -= (int)Cost;
+
+        return true;
+    }
+
+
+
     public class Spends
     {
         int _Authority;
@@ -184,13 +229,13 @@ public class RegionController
                 {
                     case SpendsSource.Nationalize:
                         if (_Goal == SpendsGoals.MilitaryUnit)
-                            res = World.World.TheWorld.GetMilitaryUnit(_ID).Cost;
+                            res = nsMilitary.MilitaryManager.Instance.GetMilitaryUnit(_ID).Cost;
                         else if (_Goal == SpendsGoals.CosmoUnit)
                             res = 0;
                         break;
                     case SpendsSource.Private:
                         if (_Goal == SpendsGoals.MilitaryUnit)
-                            res = World.World.TheWorld.GetMilitaryUnit(_ID).Cost * ModEditor.ModProperties.Instance.PrivateFactor;
+                            res = nsMilitary.MilitaryManager.Instance.GetMilitaryUnit(_ID).Cost * ModEditor.ModProperties.Instance.PrivateFactor;
                         else if (_Goal == SpendsGoals.CosmoUnit)
                             res = 0;
                         break;
@@ -243,8 +288,8 @@ public class RegionController_Ds
 
     //Бюджет
     public double PrivateEconomy, NationalizeEconomy, Social, NatFund;
-    public double Corruption;
-    public double Inflation;
-    public int ProsperityLevel;
+    public double Corruption;   //0 - 100
+    public double Inflation;    //0 - 100
+    public int ProsperityLevel; //+-ProspMaxValue
 
 }

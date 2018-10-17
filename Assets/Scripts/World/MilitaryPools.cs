@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using nsEventSystem;
 
-namespace World
+namespace nsMilitary
 {
     public class MilitaryPool
     {
         protected Dictionary<int, int> _MilForces;  //Key - MilitaryUnit ID; Value - amount
+
+        public MilitaryPool()
+        {
+            _MilForces = new Dictionary<int, int>();
+        }
 
         public Dictionary<int, int> GetUnits()
         {
@@ -112,15 +118,15 @@ namespace World
             _LifeTime = LifeTime;
             _Deleter = Deleter;
 
-            GameEventSystem.Instance.SubscribeOnTurn(OnTurn);
+            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
         }
 
         ~UnitOnTheWay()
         {
-            GameEventSystem.Instance.SubscribeOnTurn(OnTurn, false);
+            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
         }
 
-        void OnTurn()
+        void OnTurn(object sender, EventArgs e)
         {
             if (--_LifeTime == 0)
                 ExecuteMovement();
@@ -131,13 +137,13 @@ namespace World
             switch (_DestType)
             {
                 case DestinationTypes.MainPool:
-                    World.TheWorld.GetMainMilPool(_DestID).AddUnits(_UnitID, _Amount);
+                    MilitaryManager.Instance.GetMainMilPool(_DestID).AddUnits(_UnitID, _Amount);
                     break;
                 case DestinationTypes.SeaPool:
-                    World.TheWorld.GetSeaPool(_DestID).GetNavy(_Authority).AddUnits(_UnitID, _Amount);
+                    MilitaryManager.Instance.GetSeaPool(_DestID).GetNavy(_Authority).AddUnits(_UnitID, _Amount);
                     break;
                 case DestinationTypes.MilitaryBase:
-                    MilitaryBase mb = World.TheWorld.GetMilitaryBase(_DestID);
+                    MilitaryBase mb = MilitaryManager.Instance.GetMilitaryBase(_DestID);
                     if (mb.FreeCapacity >= _Amount)
                         mb.AddUnits(_UnitID, _Amount);
                     else
@@ -145,7 +151,7 @@ namespace World
                         //Юнитов пришло больше, чем свободного места на базе. Заполняем базу, "лишних" юнитов отправляем в основной пул.
                         int fc = mb.FreeCapacity;
                         mb.AddUnits(_UnitID, fc);
-                        _LifeTime = World.TheWorld.GetMovementTime(_DestType, _DestID, DestinationTypes.MainPool, _Authority);
+                        _LifeTime = MilitaryManager.Instance.GetMovementTime(_DestType, _DestID, DestinationTypes.MainPool, _Authority);
                         _DestType = DestinationTypes.MainPool;
                         _DestID = mb.AuthID;
                         _Amount -= fc;

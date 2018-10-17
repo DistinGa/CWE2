@@ -1,80 +1,72 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using nsWorld;
+using nsEventSystem;
 
-namespace World
+namespace nsEmbassy
 {
     public class DiplomaticMission
     {
-        int _AuthID;
-        int _RegID;
-        int _LifeTime;
-        int _Parameter;
-        DipMissionType _Type;
+        public int LifeTime;  //Продолжительность миссии
 
-        public DiplomaticMission(DipMissionType Type, int AuthID, int RegID, int Parameter, int LifeTime)
+        public EventTypeClass EventType;
+        public EventArgs EventArgs;
+
+        public DiplomaticMission(int LifeTime, EventTypeClass EventType, EventArgs EventArgs)
         {
-            _AuthID = AuthID;
-            _RegID = RegID;
-            _LifeTime = LifeTime;
-            _Parameter = Parameter;
-            _Type = Type;
-
-            GameEventSystem.Instance.SubscribeOnTurn(OnTurn);
-        }
-
-        ~DiplomaticMission()
-        {
-            GameEventSystem.Instance.SubscribeOnTurn(OnTurn, false);
-        }
-
-        public int LifeTime
-        {
-            get{ return _LifeTime; }
-        }
-
-        void OnTurn()
-        {
-            if (--_LifeTime == 0)
-                ExecuteMission();
+            this.LifeTime = LifeTime;
+            this.EventType = EventType;
+            this.EventArgs = EventArgs;
         }
 
         void ExecuteMission()
         {
-            switch (_Type)
-            {
-                //Добавление влияния
-                case DipMissionType.InfAddition:
-                    World.TheWorld.GetRegion(_RegID).AddInfluence(_AuthID, _Parameter);
-                    break;
-                //добавление благосостояния
-                case DipMissionType.ProsperityAddition:
-                    World.TheWorld.GetRegion(_RegID).AddProsperity(_Parameter);
-                    break;
-                //Кооперация (поднимается + $$$ в национальный фонд играбельной страны и + GDP не играбельной страны в течении определенного времени, например +100 через 50 ходов)
-                case DipMissionType.Cooperation:
+            GameEventSystem.Instance.InvokeEvents(EventType, EventArgs);
+
+            GameEventSystem.Instance.InvokeEvents(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, EventArgs);
+
+            //switch (_Type)
+            //{
+            //    //Добавление влияния
+            //    case DipMissionType.InfAddition:
+            //        World.TheWorld.GetRegion(_RegID).AddInfluence(_TargetID, _Parameter);
+            //        break;
+            //    //добавление благосостояния
+            //    case DipMissionType.ProsperityAddition:
+            //        World.TheWorld.GetRegion(_RegID).AddProsperity(_Parameter);
+            //        break;
+            //    //Кооперация (поднимается + $$$ в национальный фонд играбельной страны и + GDP не играбельной страны в течении определенного времени, например +100 через 50 ходов)
+            //    case DipMissionType.Cooperation:
                     
-                    break;
-                //Постройка новой базы
-                case DipMissionType.MilitaryBaseBuilding:
-                    if (World.TheWorld.GetRegion(_RegID).MilitaryBaseID == 0)
-                    {
-                        World.TheWorld.BuildMillitaryBase(_RegID, _AuthID);
-                    }
-                    break;
-                //Увеличение вместимости базы
-                case DipMissionType.MilitaryBaseCapacityAddition:
-                    if (World.TheWorld.GetRegion(_RegID).MilitaryBaseID != 0)
-                    {
-                        World.TheWorld.GetMilitaryBase(World.TheWorld.GetRegion(_RegID).MilitaryBaseID).AddCapacity(_Parameter);
-                    }
-                    break;
-                case DipMissionType.AddSpy:
-                    World.TheWorld.GetRegion(_RegID).AddSpy(_AuthID, _Parameter);
-                    break;
-                default:
-                    break;
-            }
+            //        break;
+            //    //Постройка новой базы
+            //    case DipMissionType.MilitaryBaseBuilding:
+            //        if (World.TheWorld.GetRegion(_RegID).MilitaryBaseID == 0)
+            //        {
+            //            nsMilitary.MilitaryManager.Instance.BuildMillitaryBase(_RegID, _TargetID);
+            //        }
+            //        break;
+            //    //Увеличение вместимости базы
+            //    case DipMissionType.MilitaryBaseCapacityAddition:
+            //        if (World.TheWorld.GetRegion(_RegID).MilitaryBaseID != 0)
+            //        {
+            //            nsMilitary.MilitaryManager.Instance.GetMilitaryBase(World.TheWorld.GetRegion(_RegID).MilitaryBaseID).AddCapacity(_Parameter);
+            //        }
+            //        break;
+            //    case DipMissionType.RiseParty:
+            //         break;
+            //    case DipMissionType.PushAct:
+            //        break;
+            //    case DipMissionType.RiseRadicals:
+            //        break;
+            //    case DipMissionType.Espionage:
+            //        break;
+            //    case DipMissionType.CounterEspionage:
+            //        break;
+            //    default:
+            //        break;
+            //}
         }
     }
 
@@ -85,6 +77,10 @@ namespace World
         Cooperation,
         MilitaryBaseBuilding,
         MilitaryBaseCapacityAddition,
-        AddSpy
+        RiseParty,
+        PushAct,
+        RiseRadicals,
+        Espionage,
+        CounterEspionage
     }
 }
