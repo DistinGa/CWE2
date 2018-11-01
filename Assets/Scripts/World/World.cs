@@ -11,7 +11,6 @@ namespace nsWorld
         public static World TheWorld;
 
         World_Ds _WorldData;
-        List<string> _Authorities;  //Нулевая считается нейтральной
         Dictionary<int, Region_Op> _Regions;
         List<RegionController> _RegionControllers;  //index - Authority
 
@@ -20,14 +19,16 @@ namespace nsWorld
             TheWorld = this;
 
             GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnDipMissionComplete);
+            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, OnDipMissionComplete);
+            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion, OnAbortPartyLawInRegion);
         }
 
         ~World()
         {
             GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
-             GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnDipMissionComplete);
-       }
+            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, OnDipMissionComplete);
+            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion, OnAbortPartyLawInRegion);
+        }
 
         public void CreateWorld()
         {
@@ -37,12 +38,23 @@ namespace nsWorld
 
         void OnTurn(object sender, EventArgs e)
         {
+            _WorldData.CurrentTurn++;
         }
 
         void OnDipMissionComplete(object sender, EventArgs e)
         {
             nsEmbassy.SpyNet sn = sender as nsEmbassy.SpyNet;
             nsEmbassy.Embassy.EmbassiesList[sn.RegionID][sn.AuthorityID].MissionComplete(sn);
+        }
+
+        void OnAbortPartyLawInRegion(object sender, EventArgs e)
+        {
+            if (!(e is AbortPartyLawInRegion_EventArgs))
+                throw new Exception("Invalid EventArgs");
+
+            var args = e as AbortPartyLawInRegion_EventArgs;
+
+            GetRegion(args.RegID).PartyAbortLaw(args.PartyID);
         }
 
         public Region_Op GetRegion(int ind)

@@ -124,6 +124,10 @@ namespace nsEmbassy
             return true;
         }
 
+        /// <summary>
+        /// Проверка достижения цели фокуса.
+        /// </summary>
+        /// <param name="pSpyNet"></param>
         public void MissionComplete(SpyNet pSpyNet)
         {
             if (DipFocusID == 0)    //фокус "Manual"

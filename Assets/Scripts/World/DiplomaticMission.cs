@@ -20,12 +20,10 @@ namespace nsEmbassy
             this.EventArgs = EventArgs;
         }
 
+
+        //Оставлена, чтобы не забыть, какие миссии что делают.
         void ExecuteMission()
         {
-            GameEventSystem.Instance.InvokeEvents(EventType, EventArgs);
-
-            GameEventSystem.Instance.InvokeEvents(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, EventArgs);
-
             //switch (_Type)
             //{
             //    //Добавление влияния

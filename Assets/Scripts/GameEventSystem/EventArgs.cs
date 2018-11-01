@@ -7,8 +7,8 @@ namespace nsEventSystem
         public int AuthID, UnitID, Amount;
     }
 
-    public sealed class SpyNetCompletesDipMission_EventArgs : EventArgs
+    public sealed class AbortPartyLawInRegion_EventArgs : EventArgs
     {
-        public nsEmbassy.SpyNet SpyNet;
+        public int RegID, PartyID;
     }
 }

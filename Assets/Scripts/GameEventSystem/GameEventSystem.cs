@@ -18,13 +18,15 @@ namespace nsEventSystem
             public static readonly EventTypeClass NewMonthEvents = new EventTypeClass();
             public static readonly EventTypeClass EndYearEvents = new EventTypeClass();
             public static readonly EventTypeClass NewYearEvents = new EventTypeClass();
+            //События без параметров, где важен sender
+            public static readonly EventTypeClass SpyNetCompletesDipMission = new EventTypeClass(); //Дипломатическая миссия выполнена
 
             //События с параметрами
             public static readonly EventTypeClass DevelopNewMilitaryUnit = new EventTypeClass(); //Разработка нового класса юнитов
             public static readonly EventTypeClass ProduceNewMilitaryUnit = new EventTypeClass(); //Постройка нового юнита (ProduceNewUnits_EventArgs)
+            public static readonly EventTypeClass AbortPartyLawInRegion = new EventTypeClass(); //Отмена принятия закона оппозицией или игроком.
 
-            //События с сылочными параметрами
-            public static readonly EventTypeClass SpyNetCompletesDipMission = new EventTypeClass(); //Дипломатическая миссия выполнена
+            //События с сылочными параметрами (не используются при сериализации)
         }
 
         //Класс используется для хранения объектных ключей словаря CalcEventAggregator
@@ -176,5 +178,11 @@ namespace nsEventSystem
             }
         }
         #endregion
+    }
+
+    public class GameEvent
+    {
+        public EventTypeClass EventType;
+        public EventArgs EventArgs;
     }
 }

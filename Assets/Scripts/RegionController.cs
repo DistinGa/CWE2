@@ -26,7 +26,7 @@ public enum SpendsGoals
     MilitaryUnit,
     CosmoUnit,
     Technology,
-    Ungrade
+    Upgrade
 }
 
 public class RegionController
@@ -34,7 +34,7 @@ public class RegionController
     RegionController_Ds _RegCData;
     int _Authority;
     Color _Color;
-    int _HomelandID;
+    int _HomelandID;    //ID контролируемого региона
 
     public RegionController(RegionController_Ds RegCData, int Authority, Color Color, int HomelandID)
     {
@@ -51,6 +51,11 @@ public class RegionController
     {
         GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, Turn);
         GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
+    }
+
+    public int AuthorityID
+    {
+        get { return _Authority; }
     }
 
     public int Prestige
@@ -75,6 +80,47 @@ public class RegionController
         }
     }
 
+    public int ProsperityLevel
+    {
+        get { return World.TheWorld.GetRegion(_HomelandID).ProsperityLevel; }
+
+        set { World.TheWorld.GetRegion(_HomelandID).ProsperityLevel = value; }
+    }
+
+    public int Inflation
+    {
+        get { return _RegCData.Inflation; }
+
+        set
+        {
+            _RegCData.Inflation = value;
+            if (_RegCData.Inflation < 0)
+                _RegCData.Inflation = 0;
+            if (_RegCData.Inflation > 100)
+                _RegCData.Inflation = 100;
+        }
+    }
+
+    public int Corruption
+    {
+        get { return _RegCData.Corruption; }
+
+        set
+        {
+            _RegCData.Corruption = value;
+            if (_RegCData.Corruption < 0)
+                _RegCData.Corruption = 0;
+            if (_RegCData.Corruption > 100)
+                _RegCData.Corruption = 100;
+        }
+    }
+
+    public Region_Op ControlledRegion
+    {
+        get { return World.TheWorld.GetRegion(_HomelandID); }
+    }
+
+
     private void Turn(object sender, EventArgs e)
     {
         //Производство юнитов, апгрейд и изучение технологий
@@ -94,6 +140,13 @@ public class RegionController
         _RegCData.PrivateEconomy *= 1f + 0.01f * ModEditor.ModProperties.Instance.PrivateWeeklyGrow;
         //Рост частного сектора от использования
         _RegCData.PrivateEconomy += GetSpends(SpendsSource.Private) * (1f + 0.01f * ModEditor.ModProperties.Instance.PrivateLoadedWeeklyGrow);
+
+        //Изменение популярности партий каждый ход
+        for (int i = 0; i < ModEditor.ModProperties.Instance.PoliticParties.Count; i++)
+        {
+            float x = ModEditor.ModProperties.Instance.PoliticParties[i].GetPartyPopularityGain(this);
+            ControlledRegion.AddPartyPopularity(i, x);
+        }
     }
 
     private void EndOfMonth(object sender, EventArgs e)
@@ -158,7 +211,7 @@ public class RegionController
         double[] spends = GetSpends();
 
         _RegCData.NatFund += ((_RegCData.NationalizeEconomy - spends[0] + _RegCData.PrivateEconomy - spends[1]) - (_RegCData.Social + spends[2]))
-            * 0.01d * (100d + _RegCData.ProsperityLevel * ModEditor.ModProperties.Instance.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
+            * 0.01d * (100d + ProsperityLevel * ModEditor.ModProperties.Instance.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
     }
 
     /// <summary>
@@ -288,8 +341,7 @@ public class RegionController_Ds
 
     //Бюджет
     public double PrivateEconomy, NationalizeEconomy, Social, NatFund;
-    public double Corruption;   //0 - 100
-    public double Inflation;    //0 - 100
-    public int ProsperityLevel; //+-ProspMaxValue
+    public int Corruption;   //0 - 100
+    public int Inflation;    //0 - 100
 
 }
