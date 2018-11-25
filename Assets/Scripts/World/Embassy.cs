@@ -12,7 +12,6 @@ namespace nsEmbassy
 
         public Action OnChange;
 
-        public static Dictionary<int, List<Embassy>> EmbassiesList;    //Key - RegionID, ListIndex - AuthorityID
         public List<SpyNet> SpyNets;
 
         private int regionID, authorityID;
@@ -81,7 +80,7 @@ namespace nsEmbassy
                 SpyNets.Add(newSN);
             }
 
-            EmbassiesList[pRegionID].Insert(pAuthorityID, this);
+            nsWorld.World.TheWorld.Embassies[pRegionID].Insert(pAuthorityID, this);
         }
 
         public Embassy(int AuthorityID, int RegionID): this(AuthorityID, RegionID, 0, 0){}
@@ -166,7 +165,7 @@ namespace nsEmbassy
             dipMissionID = NULLDIPMISSION;
             success = ModProperties.Instance.InitSpyNetSuccess;
 
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         }
 
         public int AuthorityID
@@ -329,9 +328,9 @@ namespace nsEmbassy
         {
             if (new Random().Next(0, 100) <= success)
             {
-                GameEventSystem.Instance.InvokeEvents(DipMission.EventType, DipMission.EventArgs);
+                GameEventSystem.InvokeEvents(DipMission.EventType, DipMission.EventArgs);
                 //Отправка события о выполнении миссии
-                GameEventSystem.Instance.InvokeEvents(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, this);
+                GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, this);
             }
         }
 
@@ -340,7 +339,7 @@ namespace nsEmbassy
             if (DipMissionID != NULLDIPMISSION)
             {
                 DipMissionID = NULLDIPMISSION;
-                GameEventSystem.Instance.InvokeEvents(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, this);
+                GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, this);
             }
         }
 

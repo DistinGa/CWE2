@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using nsEventSystem;
-using UnityEngine;
 
 namespace nsWorld
 {
@@ -13,26 +12,26 @@ namespace nsWorld
         RegionController _RegController;
         int _RegID;  //индекс в ассете Political Map
         int _SeaPoolID;
-        List<Sprite> _Flags;    //индекс соответствует индексу Authorities
 
-        public Region_Op(Region_Ds RegData, RegionController RegController, int RegID, int SeaPoolID, List<Sprite> Flags)
+        public Region_Op(int RegID, int SeaPoolID, RegionController RegController, Region_Ds RegData)
         {
-            _RegData = RegData;
+            _RegData = new Region_Ds();
             _RegController = RegController;
             _RegID = RegID;
             _SeaPoolID = SeaPoolID;
-            _Flags = Flags;
+            _RegData = RegData;
 
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
+
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
         }
 
         ~Region_Op()
         {
-            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
-            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
         }
 
         public string RegName
@@ -182,7 +181,7 @@ namespace nsWorld
                     {
                         //Если у партии нет большинства в парламенте, то оппозиция блокирует закон Important
                         if (party.Popularity < 50f && party_Prop.LawIsImportant(party.PoliticalLawIDs[0]))
-                            GameEventSystem.Instance.InvokeEvents(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion
+                            GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion
                                 , new AbortPartyLawInRegion_EventArgs() { RegID = _RegID, PartyID = i });
                        else
                          {
@@ -344,86 +343,145 @@ namespace nsWorld
 
             //если получился перебор (или недобор), отнимаем излишки сначала от нейтрального влияния, потом равномерно от остальных.
             int rest = sumInf - 100;
-            int infcnt = _RegData.Influence.Count - 1;  //Количество обрабатываемых элементов. Отнимаем изменяемый элемент
 
-            if (rest == 0)
+            if (rest <= 0)
                 return;
 
-            if (InfID != 0)
-            {
-                infcnt--;   //элемент нейтрального влияния тоже отнимаем из количества компенсируемых элементов
-                _RegData.Influence[0] -= rest;
-                if (_RegData.Influence[0] < 0)
-                    rest = -_RegData.Influence[0];
-                else
-                    return; //Если отняли от нейтрального влияния "в ноль", то заканчиваем. Добавить так, чтобы получилось > 100% в принципе нельзя.
-
-                Mathf.Clamp(_RegData.Influence[0], 0, 100);
-            }
-
             int k = 0;  //количество распределяемое по оставшимся элемментам.
+            int infcnt = _RegData.Influence.Where(x => x > 0).Count(); //Количество обрабатываемых элементов.
+            if (_RegData.Influence[InfID] > 0)
+                infcnt--;   //дополнительно отнимаем обрабатываемый элемент (переданный в качестве параметра метода)
             //Уменьшаем остальные влияния
             while (rest > 0)
             {
-                for (int i = 1; i < _RegData.Influence.Count; i++)
-                {
-                    if (i == InfID)
-                        continue;
+                k = rest / infcnt;  //infcnt не может равняться 0 по содержанию алгоритма
+                if (k * infcnt < rest)
+                    k++;    //округление
 
-                    k = rest / infcnt;
-                    if (k * infcnt < rest)
-                        k++;
+                for (int i = 0; i < _RegData.Influence.Count; i++)
+                {
+                    if (i == InfID || _RegData.Influence[i] == 0)
+                        continue;
 
                     _RegData.Influence[i] -= k;
                     if (_RegData.Influence[i] < 0)
                         _RegData.Influence[i] = 0;
-
-                    rest -= k;
-                    infcnt--;
                 }
 
                 sumInf = 0;
-                infcnt = 0;
+                infcnt = (_RegData.Influence[InfID] > 0)? - 1: 0; //заранее отнимаем обрабатываемый элемент
                 foreach (int inf in _RegData.Influence)
                 {
                     sumInf += inf;
-                    if(inf > 0)
+                    if (inf > 0)
                         infcnt++;
                 }
 
                 rest = sumInf - 100;
             }
-
-            //Увеличиваем остальные влияния
-            if (rest < 0)
-            {
-                rest = -rest;
-                for (int i = 1; i < _RegData.Influence.Count; i++)
-                {
-                    if (i == InfID)
-                        continue;
-
-                    k = rest / infcnt;
-                    if (k * infcnt < rest)
-                        k++;
-
-                    _RegData.Influence[i] += k;
-
-                    rest -= k;
-                    infcnt--;
-                }
-            }
-
-            sumInf = 0;
-            foreach (int inf in _RegData.Influence)
-            {
-                sumInf += inf;
-            }
-            rest = sumInf - 100;
-
-            if (rest != 0)
-                throw new System.Exception("AddInfluence Exception!");
         }
+
+        //Старый вариант оставлен на всякий случай.
+        //public void AddInfluence(int InfID, int Amount)
+        //{
+        //    if (Amount > 0)
+        //        Amount = Math.Min(Amount, 100 - _RegData.Influence[InfID]);
+        //    else
+        //        Amount = Math.Max(Amount, -_RegData.Influence[InfID]);
+
+        //    if (Amount == 0)
+        //        return;
+
+        //    _RegData.Influence[InfID] += Amount;
+
+        //    //Дальше идёт компенсация: сначала отнимаем/прибавляем нейтральное влияние, потом поровну от остальных.
+        //    int sumInf = 0;
+        //    foreach (int inf in _RegData.Influence)
+        //        sumInf += inf;
+
+        //    //если получился перебор (или недобор), отнимаем излишки сначала от нейтрального влияния, потом равномерно от остальных.
+        //    int rest = sumInf - 100;
+        //    int infcnt = _RegData.Influence.Count - 1;  //Количество обрабатываемых элементов. Отнимаем изменяемый элемент
+
+        //    if (rest == 0)
+        //        return;
+
+        //    if (InfID != 0)
+        //    {
+        //        infcnt--;   //элемент нейтрального влияния тоже отнимаем из количества компенсируемых элементов
+        //        _RegData.Influence[0] -= rest;
+        //        if (_RegData.Influence[0] < 0)
+        //            rest = -_RegData.Influence[0];
+        //        else
+        //            return; //Если отняли от нейтрального влияния "в ноль", то заканчиваем. Добавить так, чтобы получилось > 100% в принципе нельзя.
+
+        //        if (_RegData.Influence[0] < 0) _RegData.Influence[0] = 0;
+        //        if (_RegData.Influence[0] > 100) _RegData.Influence[0] = 100;
+        //    }
+
+        //    int k = 0;  //количество распределяемое по оставшимся элемментам.
+        //    //Уменьшаем остальные влияния
+        //    while (rest > 0)
+        //    {
+        //        for (int i = 1; i < _RegData.Influence.Count; i++)
+        //        {
+        //            if (i == InfID)
+        //                continue;
+
+        //            k = rest / infcnt;
+        //            if (k * infcnt < rest)
+        //                k++;
+
+        //            _RegData.Influence[i] -= k;
+        //            if (_RegData.Influence[i] < 0)
+        //                _RegData.Influence[i] = 0;
+
+        //            rest -= k;
+        //            infcnt--;
+        //        }
+
+        //        sumInf = 0;
+        //        infcnt = 0;
+        //        foreach (int inf in _RegData.Influence)
+        //        {
+        //            sumInf += inf;
+        //            if(inf > 0)
+        //                infcnt++;
+        //        }
+
+        //        rest = sumInf - 100;
+        //    }
+
+        //    //Увеличиваем остальные влияния
+        //    if (rest < 0)
+        //    {
+        //        rest = -rest;
+        //        for (int i = 1; i < _RegData.Influence.Count; i++)
+        //        {
+        //            if (i == InfID)
+        //                continue;
+
+        //            k = rest / infcnt;
+        //            if (k * infcnt < rest)
+        //                k++;
+
+        //            _RegData.Influence[i] += k;
+
+        //            rest -= k;
+        //            infcnt--;
+        //        }
+        //    }
+
+        //    sumInf = 0;
+        //    foreach (int inf in _RegData.Influence)
+        //    {
+        //        sumInf += inf;
+        //    }
+        //    rest = sumInf - 100;
+
+        //    if (rest != 0)
+        //        throw new System.Exception("AddInfluence Exception!");
+        //}
 
         public void AddProsperity(int Amount)
         {
@@ -441,7 +499,7 @@ namespace nsWorld
         }
     }
 
-    public class Region_Ds
+    public class Region_Ds: ISavable
     {
         public int MilBaseID = -1;
         public int Score;
@@ -452,7 +510,6 @@ namespace nsWorld
         public int GNP;
         public List<int> GNPhistory;
         public int ProsperityLevel; //+-ProspMaxValue
-        public List<float> PartiesPopularity_;
         public List<PoliticParty> Parties;
     }
 }

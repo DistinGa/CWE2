@@ -7,13 +7,14 @@ namespace nsEventSystem
     //Класс-болванка используется для определения типа события. Класс - чтобы легче было искать в коде подписки и вызовы событий.
     public class EventTypeClass{}
 
-    public sealed class GameEventSystem
+    public static class GameEventSystem
     {
         //Класс используется для хранения объектных ключей словаря EventAggregator
         internal static class MyEventsTypes
         {
             //События без параметров
-            public static readonly EventTypeClass TurnEvents = new EventTypeClass();
+            public static readonly EventTypeClass TurnActions = new EventTypeClass();   //Действия хода
+            public static readonly EventTypeClass TurnResults = new EventTypeClass();   //Проверка результатов хода (вызывается после TurnActions)
             public static readonly EventTypeClass EndMonthEvents = new EventTypeClass();
             public static readonly EventTypeClass NewMonthEvents = new EventTypeClass();
             public static readonly EventTypeClass EndYearEvents = new EventTypeClass();
@@ -35,22 +36,10 @@ namespace nsEventSystem
 
         }
 
-        private static GameEventSystem _Instance;
         private static Dictionary<string, EventTypeClass> EventTypesDictionary = new Dictionary<string, EventTypeClass>();  //Возможность для задания событий строками (в целях сериализации)
 
         private static Dictionary<object, EventHandler> EventAggregator = new Dictionary<object, EventHandler>();
         private static Dictionary<object, List<Func<EventArgs, int>>> CalcEventAggregator = new Dictionary<object, List<Func<EventArgs, int>>>();
-
-        public static GameEventSystem Instance
-        {
-            get
-            {
-                if (_Instance == null)
-                    _Instance = new GameEventSystem();
-
-                return _Instance;
-            }
-        }
 
         public static void AddToEventTypesDictionary(string EventName, EventTypeClass EventType)
         {
@@ -58,7 +47,7 @@ namespace nsEventSystem
         }
 
         #region Common
-        public void Subscribe(EventTypeClass evType, EventHandler evHandler)
+        public static void Subscribe(EventTypeClass evType, EventHandler evHandler)
         {
             if (!EventAggregator.ContainsKey(evType))
                 EventAggregator.Add(evType, delegate { });
@@ -66,7 +55,7 @@ namespace nsEventSystem
             EventAggregator[evType] += evHandler;
         }
 
-         public void Subscribe(string evTypeString, EventHandler evHandler)
+        public static void Subscribe(string evTypeString, EventHandler evHandler)
         {
             if (!EventTypesDictionary.ContainsKey(evTypeString))
                 throw (new Exception("Subscribing event name is not exist in the EventTypesDictionary."));
@@ -74,7 +63,7 @@ namespace nsEventSystem
             Subscribe(EventTypesDictionary[evTypeString], evHandler);
         }
 
-       public void UnSubscribe(EventTypeClass evType, EventHandler evHandler)
+       public static void UnSubscribe(EventTypeClass evType, EventHandler evHandler)
         {
             if (!EventAggregator.ContainsKey(evType))
                 throw (new Exception("Unsubscribing event is not exist."));
@@ -82,7 +71,7 @@ namespace nsEventSystem
             EventAggregator[evType] -= evHandler;
         }
 
-        public void UnSubscribe(string evTypeString, EventHandler evHandler)
+        public static void UnSubscribe(string evTypeString, EventHandler evHandler)
         {
             if (!EventTypesDictionary.ContainsKey(evTypeString))
                 throw (new Exception("Unsubscribing event name is not exist in the EventTypesDictionary."));
@@ -90,12 +79,12 @@ namespace nsEventSystem
             UnSubscribe(EventTypesDictionary[evTypeString], evHandler);
         }
 
-        public void InvokeEvents(EventTypeClass evType, object sender = null)
+        public static void InvokeEvents(EventTypeClass evType, object sender = null)
         {
             InvokeEvents(evType, EventArgs.Empty, sender);
         }
 
-        public void InvokeEvents(string evTypeString, object sender = null)
+        public static void InvokeEvents(string evTypeString, object sender = null)
         {
             if (!EventTypesDictionary.ContainsKey(evTypeString))
                 throw (new Exception("Invoking event name is not exist in the EventTypesDictionary."));
@@ -103,7 +92,7 @@ namespace nsEventSystem
             InvokeEvents(EventTypesDictionary[evTypeString], sender);
         }
 
-        public void InvokeEvents(EventTypeClass evType, EventArgs e, object sender = null)
+        public static void InvokeEvents(EventTypeClass evType, EventArgs e, object sender = null)
         {
             if (!EventAggregator.ContainsKey(evType))
                 return;
@@ -111,7 +100,7 @@ namespace nsEventSystem
             EventAggregator[evType](sender, e);
         }
 
-        public void InvokeEvents(string evTypeString, EventArgs e)
+        public static void InvokeEvents(string evTypeString, EventArgs e)
         {
             if (!EventTypesDictionary.ContainsKey(evTypeString))
                 throw (new Exception("Invoking event name is not exist in the EventTypesDictionary."));
@@ -120,7 +109,7 @@ namespace nsEventSystem
         }
 
         //Calculated Events
-        public void SubscribeCalc(EventTypeClass evType, Func<EventArgs, int> evHandler)
+        public static void SubscribeCalc(EventTypeClass evType, Func<EventArgs, int> evHandler)
         {
             if (!CalcEventAggregator.ContainsKey(evType))
                 CalcEventAggregator.Add(evType, new List<Func<EventArgs, int>>());
@@ -128,7 +117,7 @@ namespace nsEventSystem
             CalcEventAggregator[evType].Add(evHandler);
         }
 
-        public void UnSubscribeCalc(EventTypeClass evType, Func<EventArgs, int> evHandler)
+        public static void UnSubscribeCalc(EventTypeClass evType, Func<EventArgs, int> evHandler)
         {
             if (!CalcEventAggregator.ContainsKey(evType))
                 throw (new Exception("Unsubscribing event is not exist."));
@@ -136,12 +125,12 @@ namespace nsEventSystem
             CalcEventAggregator[evType].Remove(evHandler);
         }
 
-        public void InvokeEventsCalc(EventTypeClass evType)
+        public static void InvokeEventsCalc(EventTypeClass evType)
         {
             InvokeEventsCalc(evType, EventArgs.Empty);
         }
 
-        public int InvokeEventsCalc(EventTypeClass evType, EventArgs e)
+        public static int InvokeEventsCalc(EventTypeClass evType, EventArgs e)
         {
             if (!CalcEventAggregator.ContainsKey(evType))
                 return 0;
@@ -158,12 +147,12 @@ namespace nsEventSystem
         #endregion
 
         #region Budget
-        public void SpendingComplete(SpendsSubjects Subject, int UnitID, int Authority)
+        public static void SpendingComplete(SpendsSubjects Subject, int UnitID, int Authority)
         {
             switch (Subject)
             {
                 case SpendsSubjects.MilitaryUnit:
-                    Instance.InvokeEvents(MyEventsTypes.ProduceNewMilitaryUnit, new ProduceNewUnits_EventArgs() {AuthID = Authority, UnitID = UnitID, Amount = 1 });
+                    InvokeEvents(MyEventsTypes.ProduceNewMilitaryUnit, new ProduceNewUnits_EventArgs() {AuthID = Authority, UnitID = UnitID, Amount = 1 });
                     break;
                 case SpendsSubjects.CosmoUnit:
                     break;
@@ -180,9 +169,4 @@ namespace nsEventSystem
         #endregion
     }
 
-    public class GameEvent
-    {
-        public EventTypeClass EventType;
-        public EventArgs EventArgs;
-    }
 }

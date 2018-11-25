@@ -18,10 +18,10 @@ namespace nsMilitary
         {
             Instance = this;
 
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.ProduceNewMilitaryUnit, ProduceNewMilitaryUnit);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.ProduceNewMilitaryUnit, ProduceNewMilitaryUnit);
         }
 
-        public void CreateMilitaryManager()
+        public static void CreateMilitaryManager()
         {
             if (Instance == null)
                 new MilitaryManager();
@@ -256,14 +256,14 @@ namespace nsMilitary
         #endregion
     }
 
-    public class MilitaryManager_Ds
+    public class MilitaryManager_Ds:ISavable
     {
         public List<MilitaryBase> MilBases;
-        public Dictionary<int, MilitaryUnit> MilitaryUnits; //База всех существующих юнитов в игре
-        public Dictionary<int, SystemBody> BodySystems; //База всех существующих SystemBody в игре
-        public Dictionary<int, SystemWeapon> WeaponSystems; //База всех существующих SystemWeapon в игре
-        public Dictionary<int, SystemReliability> ReliabilitySystems; //База всех существующих SystemReliability в игре
-        public Dictionary<int, SystemElectronics> ElectronicsSystems; //База всех существующих SystemElectronics в игре
+        public Dictionary<int, MilitaryUnit> MilitaryUnits; //Список всех существующих юнитов в игре
+        public Dictionary<int, SystemBody> BodySystems; //Список всех существующих SystemBody в игре
+        public Dictionary<int, SystemWeapon> WeaponSystems; //Список всех существующих SystemWeapon в игре
+        public Dictionary<int, SystemReliability> ReliabilitySystems; //Список всех существующих SystemReliability в игре
+        public Dictionary<int, SystemElectronics> ElectronicsSystems; //Список всех существующих SystemElectronics в игре
         public List<UnitOnTheWay> MilitaryUnitsOnTheWay; //Юниты в процессе перемещения
         public List<MilitaryPool> MainPools;    //Основные военные пулы контролируемых стран (индекс - _Authorities)
         public List<SeaPool> _SeaPools;

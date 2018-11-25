@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using nsWorld;
@@ -31,32 +32,31 @@ public enum SpendsGoals
 
 public class RegionController
 {
+    public int AuthorityID { get; private set; }
+    public Color Color { get; private set; }
+    public int HomelandID { get; private set; }    //ID контролируемого региона
+
     RegionController_Ds _RegCData;
-    int _Authority;
-    Color _Color;
-    int _HomelandID;    //ID контролируемого региона
 
-    public RegionController(RegionController_Ds RegCData, int Authority, Color Color, int HomelandID)
+    public RegionController(int Authority, int HomelandID)
     {
-        _RegCData = RegCData;
-        _Authority = Authority;
-        _Color = Color;
-        _HomelandID = HomelandID;
+        AuthorityID = Authority;
+        //this.Color = Color;
+        this.HomelandID = HomelandID;
 
-        GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, Turn);
-        GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
+        _RegCData = new RegionController_Ds();
+
+        GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, Turn);
+        GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
     }
 
     ~RegionController()
     {
-        GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, Turn);
-        GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
+        GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, Turn);
+        GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
     }
 
-    public int AuthorityID
-    {
-        get { return _Authority; }
-    }
+    #region Properties
 
     public int Prestige
     {
@@ -82,9 +82,9 @@ public class RegionController
 
     public int ProsperityLevel
     {
-        get { return World.TheWorld.GetRegion(_HomelandID).ProsperityLevel; }
+        get { return World.TheWorld.GetRegion(HomelandID).ProsperityLevel; }
 
-        set { World.TheWorld.GetRegion(_HomelandID).ProsperityLevel = value; }
+        set { World.TheWorld.GetRegion(HomelandID).ProsperityLevel = value; }
     }
 
     public int Inflation
@@ -117,9 +117,9 @@ public class RegionController
 
     public Region_Op ControlledRegion
     {
-        get { return World.TheWorld.GetRegion(_HomelandID); }
+        get { return World.TheWorld.GetRegion(HomelandID); }
     }
-
+    #endregion
 
     private void Turn(object sender, EventArgs e)
     {
@@ -137,9 +137,10 @@ public class RegionController
         }
 
         //Рост частного сектора
-        _RegCData.PrivateEconomy *= 1f + 0.01f * ModEditor.ModProperties.Instance.PrivateWeeklyGrow;
+        BudgetItem bi = _RegCData.BudgetItems[BudgetItem.BI_PrivateSector];
+        bi.Value *= 1f + 0.01f * bi.WeeklyGrow;
         //Рост частного сектора от использования
-        _RegCData.PrivateEconomy += GetSpends(SpendsSource.Private) * (1f + 0.01f * ModEditor.ModProperties.Instance.PrivateLoadedWeeklyGrow);
+        bi.Value += GetSpends(SpendsSource.Private) * (1f + 0.01f * bi.LoadedWeeklyGrow);
 
         //Изменение популярности партий каждый ход
         for (int i = 0; i < ModEditor.ModProperties.Instance.PoliticParties.Count; i++)
@@ -210,7 +211,11 @@ public class RegionController
     {
         double[] spends = GetSpends();
 
-        _RegCData.NatFund += ((_RegCData.NationalizeEconomy - spends[0] + _RegCData.PrivateEconomy - spends[1]) - (_RegCData.Social + spends[2]))
+        double economy = _RegCData.BudgetItems.Values.Where(bi => bi.Ministry == BudgetMinistry.Economy).Sum(bi => bi.Value);
+        double social = _RegCData.BudgetItems.Values.Where(bi => bi.Ministry == BudgetMinistry.Social).Sum(bi => bi.Value);
+        double privateSpends = spends[1], nationalizeSpends = spends[0];
+
+        _RegCData.NatFund += (economy - privateSpends - nationalizeSpends - social)
             * 0.01d * (100d + ProsperityLevel * ModEditor.ModProperties.Instance.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
     }
 
@@ -325,7 +330,7 @@ public class RegionController
             if (_Accumulation < Cost)
                 return;
 
-            GameEventSystem.Instance.SpendingComplete(_Subject, _ID, _Authority);
+            GameEventSystem.SpendingComplete(_Subject, _ID, _Authority);
  
             _Accumulation -= Cost;
             Execute();
@@ -340,7 +345,8 @@ public class RegionController_Ds
     public List<RegionController.Spends> Spends;
 
     //Бюджет
-    public double PrivateEconomy, NationalizeEconomy, Social, NatFund;
+    public double NatFund;
+    public Dictionary<string, BudgetItem> BudgetItems;
     public int Corruption;   //0 - 100
     public int Inflation;    //0 - 100
 

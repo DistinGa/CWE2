@@ -113,6 +113,88 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &56872480
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 56872482}
+  - component: {fileID: 56872481}
+  m_Layer: 0
+  m_Name: Settings
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &56872481
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 56872480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b9a21e68718123479c50ab5e56e9555, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ModProperties:
+    TickInterval: 5
+    GameYearsCount: 50
+    Authorities:
+    - Neutral
+    - USA
+    - USSR
+    ControlledRegions: 000000000100000002000000
+    GNP_Neutral_Min: 0
+    GNP_Neutral_Max: 0
+    GNP_HighDevLevel_Min: 0
+    GNP_HighDevLevel_Max: 0
+    GNP_LowDevLevel_Min: 0
+    GNP_LowDevLevel_Max: 0
+    ProspMaxValue: 0
+    DefaultMilBaseCapacity: 0
+    UnitMovementSpeed: 0
+    UnitMovementCost: 0
+    ProsperityAdditionToNatFund: 0
+    PrivateWeeklyGrow: 0
+    PrivateLoadedWeeklyGrow: 0
+    PrivateFactor: 0
+    MilitarySystemCostIncreasePerUpgrade: 0
+    MilitarySystemCostDecreaseByUpgrade: 0
+    MilitarySystemCapacityUpgrade: 0
+    MilitarySystemParamIncreaseByUpgrade: 0
+    MilitaryUnitClasses: []
+    MilitaryUnitTypes: []
+    EmbassyLevelsNames: []
+    EmbassyLevelSizes: 
+    InitEmbassyUpgradeCost: 0
+    InitSpyNetUpgradeCost: 0
+    InitSpyNetSuccess: 0
+    EmbassyUpgradeCostFactor: 0
+    SpyNetSuccessUpgradePercent: 0
+    SpyNetSpeedUpgradePercent: 0
+    SpyNetCounterEspionageDelayTime: 0
+    AnnualPartyPopularityGain: 0
+    RelativeNatFundToPartyGrow: 0
+    PassingLawTime1: 0
+    PassingLawTime2: 0
+    PassingLawTime_: 0
+--- !u!4 &56872482
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 56872480}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 491.5617, y: 313.1817, z: 5.625}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &88277806
 GameObject:
   m_ObjectHideFlags: 0

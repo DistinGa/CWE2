@@ -4,12 +4,18 @@ using ModEditor;
 
 namespace nsWorld
 {
-    public class PoliticParty
+    public class PoliticParty: ISavable
     {
         public int ppID;
         public float Popularity;
-        public List<int> PoliticalLawIDs;
+        public List<int> PoliticalLawIDs;   //Очередь законов для принятия
         public float RemainTurns;  //оставшееся время до принятия
+
+        public PoliticParty(int ppID, float Popularity)
+        {
+            this.ppID = ppID;
+            this.Popularity = Popularity;
+        }
 
         /// <summary>
         /// Ссылка на параметры партии из настроек

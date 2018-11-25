@@ -50,11 +50,11 @@ namespace ModEditor
 
             if (RC == null)
             {
-                laws = _Laws.Where(l => !l._Important).ToList();
+                laws = _Laws.Where(l => (!l._Important && l.Condition.CheckCondition())).ToList();
             }
             else
             {
-                laws = _Laws;
+                laws = _Laws.Where(l => l.Condition.CheckCondition()).ToList();
             }
 
             int ind = (new Random()).Next(_Laws.Count);
@@ -67,7 +67,7 @@ namespace ModEditor
         }
 
         /// <summary>
-        /// Рост популярности партии в контролируемом регионе
+        /// Рост популярности партии в регионе
         /// </summary>
         /// <param name="RegionController"></param>
         /// <returns></returns>
@@ -127,12 +127,13 @@ namespace ModEditor
     public class PoliticLaw_Props
     {
         public bool _Important;
+        public IConditional Condition;
         List<nsEventSystem.GameEvent> GameEvent;
 
         public void PassingLaw()
         {
             foreach (var item in GameEvent)
-                nsEventSystem.GameEventSystem.Instance.InvokeEvents(item.EventType, item.EventArgs);
+                nsEventSystem.GameEventSystem.InvokeEvents(item.EventType, item.EventArgs);
         }
     }
 

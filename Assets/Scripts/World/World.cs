@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using nsEventSystem;
@@ -17,25 +18,36 @@ namespace nsWorld
         private World()
         {
             TheWorld = this;
+            _WorldData = new World_Ds();
 
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, OnDipMissionComplete);
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion, OnAbortPartyLawInRegion);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, OnDipMissionComplete);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion, OnAbortPartyLawInRegion);
         }
 
         ~World()
         {
-            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
-            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, OnDipMissionComplete);
-            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion, OnAbortPartyLawInRegion);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.SpyNetCompletesDipMission, OnDipMissionComplete);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.AbortPartyLawInRegion, OnAbortPartyLawInRegion);
         }
 
-        public void CreateWorld()
+        public static void CreateWorld()
         {
-            if (TheWorld == null)
-                new World();
+            if (TheWorld != null) return;
+
+            new World();
+            TheWorld._RegionControllers = new List<RegionController>();
+            for (int i = 0; i < ModEditor.ModProperties.Instance.ControlledRegions.Count; i++)
+            {
+                TheWorld._RegionControllers.Add(new RegionController(i, ModEditor.ModProperties.Instance.ControlledRegions[i]));
+            }
+
+            TheWorld.LoadRegions();
+
         }
 
+        #region События
         void OnTurn(object sender, EventArgs e)
         {
             _WorldData.CurrentTurn++;
@@ -44,7 +56,7 @@ namespace nsWorld
         void OnDipMissionComplete(object sender, EventArgs e)
         {
             nsEmbassy.SpyNet sn = sender as nsEmbassy.SpyNet;
-            nsEmbassy.Embassy.EmbassiesList[sn.RegionID][sn.AuthorityID].MissionComplete(sn);
+            Embassies[sn.RegionID][sn.AuthorityID].MissionComplete(sn);
         }
 
         void OnAbortPartyLawInRegion(object sender, EventArgs e)
@@ -55,6 +67,30 @@ namespace nsWorld
             var args = e as AbortPartyLawInRegion_EventArgs;
 
             GetRegion(args.RegID).PartyAbortLaw(args.PartyID);
+        }
+        #endregion
+
+        #region Свойства
+        public Dictionary<int, List<nsEmbassy.Embassy>> Embassies
+        {
+            get
+            {
+                return _WorldData.EmbassiesList;
+            }
+        }
+        #endregion
+
+        private void LoadRegions()
+        {
+            foreach (var reg in ModEditor.ModProperties.Instance.Regions)
+            {
+                _Regions.Add(reg.RegID, new Region_Op(reg.RegID, reg.SeaPoolID, FindRegionControllerForRegID(reg.RegID), reg.RegionData));
+            }
+        }
+
+        public RegionController FindRegionControllerForRegID(int RegID)
+        {
+            return _RegionControllers.Where(rc => rc.HomelandID == RegID) as RegionController;
         }
 
         public Region_Op GetRegion(int ind)
@@ -69,10 +105,13 @@ namespace nsWorld
 
     }
 
-    public class World_Ds
+
+    ////////////////////////////////////////////
+    public class World_Ds:ISavable
     {
         public int CurrentTurn;
         public int GlobalDevLevel;
+        public Dictionary<int, List<nsEmbassy.Embassy>> EmbassiesList = new Dictionary<int, List<nsEmbassy.Embassy>>();    //Key - RegionID, ListIndex - AuthorityID
 
         public World_Ds()
         {

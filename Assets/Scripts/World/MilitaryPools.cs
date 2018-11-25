@@ -118,12 +118,12 @@ namespace nsMilitary
             _LifeTime = LifeTime;
             _Deleter = Deleter;
 
-            GameEventSystem.Instance.Subscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         }
 
         ~UnitOnTheWay()
         {
-            GameEventSystem.Instance.UnSubscribe(GameEventSystem.MyEventsTypes.TurnEvents, OnTurn);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         }
 
         void OnTurn(object sender, EventArgs e)

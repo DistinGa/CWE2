@@ -3,14 +3,17 @@ using System.Collections.Generic;
 
 namespace ModEditor
 {
+    [System.Serializable]
     public class ModProperties
     {
         public static ModProperties Instance;
 
+        public int TickInterval;    //Время одного хода в секундах.
         public const float YEAR_TURNS_COUNT = 48; //Количество ходов в году (float, потому что на это число чаще всего будут делить целые числа)
         public int GameYearsCount;  //Количество лет игры, после которого игра заканчивается
 
-        public List<string> Authorities;  //Список режимов. Нулевой считается нейтральным
+        public List<string> Authorities;  //Список режимов.
+        public List<int> ControlledRegions;  //Список контролируемых регионов. Индекс соответствует Authority.
 
         //Ежегодный прирост GNP в неконтролируемых странах.
         public int GNP_Neutral_Min, GNP_Neutral_Max, GNP_HighDevLevel_Min, GNP_HighDevLevel_Max, GNP_LowDevLevel_Min, GNP_LowDevLevel_Max;  //Интервалы изменения GNP нейтральных стран
@@ -19,8 +22,8 @@ namespace ModEditor
         public float UnitMovementSpeed;     //Скорость перемещения военных юнитов между пулами
         public int UnitMovementCost;        //Стоимость перемещения военных юнитов между пулами ($ за ход)
         public double ProsperityAdditionToNatFund;  //Сколько процентов добавлять в нацфонд за один уровень благосостояния (0 - 100)
-        public float PrivateWeeklyGrow;    //Ежемесячный рост частного сектора (0-1%)
-        public float PrivateLoadedWeeklyGrow;    //Ежемесячный рост частного сектора (0-1%)
+        public float PrivateWeeklyGrow;    //Еженедельный рост частного сектора (0-1%)
+        public float PrivateLoadedWeeklyGrow;    //Еженедельный рост загруженного частного сектора (0-1%)
         public float PrivateFactor;         //Во сколько раз дороже постройка юнитов за счёт частного сектора
         public float MilitarySystemCostIncreasePerUpgrade;  //Увеличение стоимости производства военной системы при апгрейде
         public float MilitarySystemCostDecreaseByUpgrade;   //Снижение стоимости производства военной системы от апгрейда типа 4
@@ -29,6 +32,7 @@ namespace ModEditor
         public List<string> MilitaryUnitClasses;   //Helicopter / Tank / Submarine ...
         public List<string> MilitaryUnitTypes;     //Land / Sea / Air
 
+        //Посольства
         public List<nsEmbassy.DiplomaticMission> DipMissionsList;   //Список всех существующих в игре дип. миссий
         public List<string> EmbassyLevelsNames;     //Наименования уровней посольства
         public List<int> EmbassyLevelSizes;      //Количество шпионских сетей по уровням посольств
@@ -40,20 +44,27 @@ namespace ModEditor
         public int SpyNetSpeedUpgradePercent;     //На сколько процентов увеличивается скорость выполнения миссии сети
         public int SpyNetCounterEspionageDelayTime; //Время, на которое блокируется вражеская сеть при контр-шпионаже
 
-        public List<PoliticParty_Props> PoliticParties;  //Список разновидностей политических партий (во всех регионах такой набор партий)
-        //public List<PoliticLaw_Props> PoliticLaws;        //Список всех аозможных в игре законов
+        //Парламент
+        public List<PoliticParty_Props> PoliticParties = new List<PoliticParty_Props>();  //Список разновидностей политических партий (во всех регионах такой набор партий)
+        //public List<PoliticLaw_Props> PoliticLaws;        //Список всех возможных в игре законов
         public float AnnualPartyPopularityGain;    //Ежегодный прирост популярности партии (в неконтролируемом регионе меняется раз в год, в контролируемом - каждый ход на кратное (1/48) значение)
         public float RelativeNatFundToPartyGrow;    //Долг в нац фонде, который считается за 100% при расчёте скорости роста партии, зависящей от него
         public int PassingLawTime1;                 //Время принятия закона лидирующей партией (ходы)
         public int PassingLawTime2;                 //Время принятия закона второй лидирующей партией (ходы)
         public int PassingLawTime_;                 //Время принятия закона остальными партиями (ходы)
 
+        public List<Region_Prop> Regions;        //Список неизменяемых свойств регионов
+
         private ModProperties()
         {
             Instance = this;
         }
 
-        public void CreateModProperties()
+        /// <summary>
+        /// Инициализация экземпляра.
+        /// </summary>
+        /// <param name="FileName">Имя файла, из которого загружаются настройки. Если опущено, загружаются дефолтные, заданные при создании мода.</param>
+        public static void CreateModProperties(string FileName = "")
         {
             if (Instance == null)
                 new ModProperties();
