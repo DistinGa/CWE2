@@ -71,6 +71,11 @@ namespace nsWorld
         #endregion
 
         #region Свойства
+        public Dictionary<int, Region_Op> Regions
+        {
+            get{return _Regions;}
+        }
+
         public Dictionary<int, List<nsEmbassy.Embassy>> Embassies
         {
             get
@@ -90,7 +95,7 @@ namespace nsWorld
 
         public RegionController FindRegionControllerForRegID(int RegID)
         {
-            return _RegionControllers.Where(rc => rc.HomelandID == RegID) as RegionController;
+            return GetRegion(RegID).RegionController;
         }
 
         public Region_Op GetRegion(int ind)

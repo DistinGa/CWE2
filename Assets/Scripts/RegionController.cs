@@ -37,6 +37,7 @@ public class RegionController
     public int HomelandID { get; private set; }    //ID контролируемого региона
 
     RegionController_Ds _RegCData;
+    bool f_TurnIsDone;    //флаг, показывающий, что ход сделан
 
     public RegionController(int Authority, int HomelandID)
     {
@@ -118,6 +119,11 @@ public class RegionController
     public Region_Op ControlledRegion
     {
         get { return World.TheWorld.GetRegion(HomelandID); }
+    }
+
+    public bool TurnIsDone
+    {
+        get { return f_TurnIsDone; }
     }
     #endregion
 
@@ -238,7 +244,25 @@ public class RegionController
         return true;
     }
 
+    /// <summary>
+    /// Начало хода игрока (человек или ИИ)
+    /// </summary>
+    public void TurnStart()
+    {
+        f_TurnIsDone = false;
 
+        //Действия ИИ
+
+        //Если человек (Нужно активировать кнопку "Ход")
+    }
+
+    /// <summary>
+    /// Вызывается извне для сообщения о совершении хода
+    /// </summary>
+    public void TurnComplete()
+    {
+        f_TurnIsDone = true;
+    }
 
     public class Spends
     {

@@ -12,7 +12,9 @@ public class GameManager : MonoBehaviour {
 
     GameStates _GState;
     float _TickDuration;
-    
+    float _WaitPlayerTurnTime = 300f; //Время ожидания хода игрока (по умолчанию 5 минут)
+    bool _f_WaitTimeIsOut;  //Время оидания хода вышло
+
     public GameStates GameState
     {
         get { return _GState; }
@@ -47,10 +49,39 @@ public class GameManager : MonoBehaviour {
             {
                 _TickDuration = ModProperties.Instance.TickInterval;
 
-                GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.TurnActions);
-                GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.TurnResults);
+                StartCoroutine(GameTurn());
             }
         }
+    }
+
+    /// <summary>
+    /// Ход игры. Все регионы выполняют свой ход поочереди. Выполняется ожидание хода игрока.
+    /// </summary>
+    IEnumerator GameTurn()
+    {
+        GameState = GameStates.WaitPlayerTurn;
+        foreach (var item in World.TheWorld.Regions)
+        {
+            item.Value.MakeTurnRegion();
+            yield return new WaitForSeconds(1);
+            StartCoroutine(WaitTurnPlayer());   //Запуск счётчика ожидания хода
+            yield return new WaitUntil(() => item.Value.WaitTurnRegion() || _f_WaitTimeIsOut);
+        }
+
+        GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.TurnActions);
+        GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.TurnResults);
+        GameState = GameStates.Regular;
+    }
+
+    /// <summary>
+    /// Счётчик ожидания хода игрока
+    /// </summary>
+    /// <returns></returns>
+    IEnumerator WaitTurnPlayer()
+    {
+        _f_WaitTimeIsOut = false;
+        yield return new WaitForSeconds(_WaitPlayerTurnTime);
+        _f_WaitTimeIsOut = true;
     }
 
     public void StartGame(bool Load)
@@ -85,6 +116,7 @@ public enum GameStates
     Saving,
     Loading,
     Regular,
-    Paused
+    Paused,
+    WaitPlayerTurn
 }
 

@@ -39,6 +39,11 @@ namespace nsWorld
             get { return "Название из ассета"; }
         }
 
+        public RegionController RegionController
+        {
+            get { return _RegController; }
+        }
+
         public int SeaPoolID
         {
             get
@@ -66,6 +71,38 @@ namespace nsWorld
                     _RegData.ProsperityLevel = -ModEditor.ModProperties.Instance.ProspMaxValue;
                 if (_RegData.ProsperityLevel > ModEditor.ModProperties.Instance.ProspMaxValue)
                     _RegData.ProsperityLevel = ModEditor.ModProperties.Instance.ProspMaxValue;
+            }
+        }
+
+        /// <summary>
+        /// Поочерёдный ход региона.
+        /// Неконтролируемые выполняют свои действия, контролируемые передают управление ИИ или игроку
+        /// </summary>
+        public void MakeTurnRegion()
+        {
+            if (RegionController == null)
+            {
+                //Действия неконтролируемого региона
+            }
+            else
+            {
+                RegionController.TurnStart();
+            }
+        }
+
+        /// <summary>
+        /// Ожидание хода и возврат "true", после окончания
+        /// </summary>
+        /// <returns></returns>
+        public bool WaitTurnRegion()
+        {
+            if (RegionController == null)
+            {
+                return true;
+            }
+            else
+            {
+                return RegionController.TurnIsDone;
             }
         }
 
