@@ -74,6 +74,11 @@ namespace nsWorld
             }
         }
 
+        public int MovementValue
+        {
+            get { return _RegData.MovementValue; }
+        }
+
         /// <summary>
         /// Поочерёдный ход региона.
         /// Неконтролируемые выполняют свои действия, контролируемые передают управление ИИ или игроку
@@ -541,12 +546,12 @@ namespace nsWorld
         public int MilBaseID = -1;
         public int Score;
         public int Authority;
-        public int OppAuthority;    //Чьи войска в OppForces
         public List<int> Influence, Radicals;
         public Dictionary<int, int> GovForces, OppForces;  //Key - MilitaryUnit ID; Value - amount
         public int GNP;
         public List<int> GNPhistory;
         public int ProsperityLevel; //+-ProspMaxValue
         public List<PoliticParty> Parties;
+        public int MovementValue;   //Насколько быстро военные юниты перемещаются по региону во время боя
     }
 }

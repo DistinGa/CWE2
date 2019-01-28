@@ -11,6 +11,7 @@ namespace nsMilitary
     public class MilitaryManager
     {
         public static MilitaryManager Instance;
+        public Dictionary<int, UnitClass> UnitClasses;
 
         MilitaryManager_Ds _MilitaryManagerData;
 
@@ -43,9 +44,17 @@ namespace nsMilitary
                 return _MilitaryManagerData.MilBases[ind];
         }
 
+        /// <summary>
+        /// Возвращает домашний военный пул
+        /// </summary>
+        /// <param name="ID">Authority</param>
+        /// <returns></returns>
         public MilitaryPool GetMainMilPool(int ID)
         {
-            return _MilitaryManagerData.MainPools[ID];
+            if(ID == -1)
+                return null;
+            else
+                return _MilitaryManagerData.MainPools[ID];
         }
 
         public MilitaryUnit GetMilitaryUnit(int _ID)
@@ -106,11 +115,11 @@ namespace nsMilitary
             _MilitaryManagerData.BodySystems.Add(maxKey, NewSystem);
         }
 
-        public void NewWeaponSystem(int authority, string systemName, double initCost, double cost, int load, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses, int hitpoint, int range, List<int> targetClasses)
+        public void NewWeaponSystem(int authority, string systemName, double initCost, double cost, int load, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses, int hitpoint, int range, List<int> targetClasses, int fireCost)
         {
             int maxKey = _MilitaryManagerData.WeaponSystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.WeaponSystems.Where(d => d.Value.SystemName == systemName).Max((d) => d.Value.Version) + 1;
-            _MilitaryManagerData.WeaponSystems.Add(maxKey, new SystemWeapon(authority, systemName, newVersion, initCost, cost, load, militaryGeneration, investigated, active, upgradeCount, masterClasses, hitpoint, range, targetClasses));
+            _MilitaryManagerData.WeaponSystems.Add(maxKey, new SystemWeapon(authority, systemName, newVersion, initCost, cost, load, militaryGeneration, investigated, active, upgradeCount, masterClasses, hitpoint, range, targetClasses, fireCost));
         }
 
         public void NewWeaponSystem(SystemWeapon NewSystem)
@@ -203,8 +212,18 @@ namespace nsMilitary
             return true;
         }
 
-        //Перемещение военных юнитов между пулами
-        public bool MoveMilitaryUnits(int Authority, DestinationTypes FromType, int FromID, DestinationTypes DestType, int DestID, int UnitID, int Amount)
+        /// <summary>
+        /// Перемещение военных юнитов между пулами
+        /// </summary>
+        /// <param name="Authority"></param>
+        /// <param name="FromType"></param>
+        /// <param name="FromID"></param>
+        /// <param name="DestType"></param>
+        /// <param name="DestID"></param>
+        /// <param name="UnitID"></param>
+        /// <param name="Amount"></param>
+        /// <returns></returns>
+        public bool SendMilitaryUnits(int Authority, DestinationTypes FromType, int FromID, DestinationTypes DestType, int DestID, int UnitID, int Amount)
         {
             int MoveTime = GetMovementTime(FromType, FromID, DestType, DestID);
             //Проверка условий возможности перемещения

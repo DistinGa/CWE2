@@ -11,4 +11,9 @@ namespace nsEventSystem
     {
         public int RegID, PartyID;
     }
+
+    public sealed class EndOfCombat_EventArgs : EventArgs
+    {
+        public int WinnerRegID;
+    }
 }

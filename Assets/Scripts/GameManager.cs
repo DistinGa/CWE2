@@ -60,6 +60,8 @@ public class GameManager : MonoBehaviour {
     IEnumerator GameTurn()
     {
         GameState = GameStates.WaitPlayerTurn;
+        GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.TurnActions);
+
         foreach (var item in World.TheWorld.Regions)
         {
             item.Value.MakeTurnRegion();
@@ -68,7 +70,6 @@ public class GameManager : MonoBehaviour {
             yield return new WaitUntil(() => item.Value.WaitTurnRegion() || _f_WaitTimeIsOut);
         }
 
-        GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.TurnActions);
         GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.TurnResults);
         GameState = GameStates.Regular;
     }

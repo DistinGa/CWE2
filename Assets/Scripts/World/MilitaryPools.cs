@@ -157,7 +157,7 @@ namespace nsMilitary
                         _Amount -= fc;
                     }
                     break;
-                case DestinationTypes.Region:
+                case DestinationTypes.War:
 
                     break;
                 default:
@@ -174,6 +174,6 @@ namespace nsMilitary
         MainPool,
         SeaPool,
         MilitaryBase,
-        Region
+        War
     }
 }

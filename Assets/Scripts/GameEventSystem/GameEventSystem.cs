@@ -26,11 +26,12 @@ namespace nsEventSystem
             public static readonly EventTypeClass DevelopNewMilitaryUnit = new EventTypeClass(); //Разработка нового класса юнитов
             public static readonly EventTypeClass ProduceNewMilitaryUnit = new EventTypeClass(); //Постройка нового юнита (ProduceNewUnits_EventArgs)
             public static readonly EventTypeClass AbortPartyLawInRegion = new EventTypeClass(); //Отмена принятия закона оппозицией или игроком.
+            public static readonly EventTypeClass EndOfCombat = new EventTypeClass(); //Окончание боя.
 
             //События с сылочными параметрами (не используются при сериализации)
         }
 
-        //Класс используется для хранения объектных ключей словаря CalcEventAggregator
+        //Класс используется для хранения объектных ключей словаря CalcEventAggregator (используются для расчётов, например скидок и бонусов)
         internal static class MyCalcEventsTypes
         {
 

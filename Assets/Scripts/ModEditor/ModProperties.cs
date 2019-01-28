@@ -12,8 +12,9 @@ namespace ModEditor
         public const float YEAR_TURNS_COUNT = 48; //Количество ходов в году (float, потому что на это число чаще всего будут делить целые числа)
         public int GameYearsCount;  //Количество лет игры, после которого игра заканчивается
 
-        public List<string> Authorities;  //Список режимов.
+        public List<string> Authorities;  //Список политических режимов (-1 - нейтральный).
         public List<int> ControlledRegions;  //Список контролируемых регионов. Индекс соответствует Authority.
+        public List<Region_Prop> Regions;        //Список неизменяемых свойств регионов
 
         //Ежегодный прирост GNP в неконтролируемых странах.
         public int GNP_Neutral_Min, GNP_Neutral_Max, GNP_HighDevLevel_Min, GNP_HighDevLevel_Max, GNP_LowDevLevel_Min, GNP_LowDevLevel_Max;  //Интервалы изменения GNP нейтральных стран
@@ -53,7 +54,12 @@ namespace ModEditor
         public int PassingLawTime2;                 //Время принятия закона второй лидирующей партией (ходы)
         public int PassingLawTime_;                 //Время принятия закона остальными партиями (ходы)
 
-        public List<Region_Prop> Regions;        //Список неизменяемых свойств регионов
+        //Military
+        public List<nsMilitary.UnitClass> UnitClasses;
+
+        //Combat
+        public int FireCost;    //Сколько Supply отнимается при выстреле
+        public int CombatArea, CenterCombatArea;    //Размер поля боя, и центральная облать (количество линий для каждой стороны)
 
         private ModProperties()
         {

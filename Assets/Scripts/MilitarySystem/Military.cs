@@ -24,6 +24,14 @@ namespace nsMilitary
             Electronics = electronics;
         }
 
+        /// <summary>
+        /// Начальное положение на поле боя (клетка, начиная от центра)
+        /// </summary>
+        public int StartPosition
+        {
+            get { return MilitaryManager.Instance.UnitClasses[UnitClass].StartPosition; }
+        }
+
         public double Cost
         {
             get
@@ -49,6 +57,138 @@ namespace nsMilitary
                 //Бонусы, скидки...
                 return res;
             }
+        }
+
+        public int Armor
+        {
+            get { return MilitaryManager.Instance.GetSystemBody(Body).Armor; }
+        }
+
+        public int Stealth
+        {
+            get { return MilitaryManager.Instance.GetSystemBody(Body).Stealth; }
+        }
+
+        public int Capacity
+        {
+            get { return MilitaryManager.Instance.GetSystemBody(Body).Capacity; }
+        }
+
+        public int Supply
+        {
+            get
+            {
+                int res = Capacity;
+
+                foreach (var item in Weapon)
+                {
+                    res -= MilitaryManager.Instance.GetSystemWeapon(item).Load;
+                }
+                foreach (var item in Weapon)
+                {
+                    res -= MilitaryManager.Instance.GetSystemReliability(item).Load;
+                }
+                foreach (var item in Weapon)
+                {
+                    res -= MilitaryManager.Instance.GetSystemElectronics(item).Load;
+                }
+
+                return res;
+            }
+        }
+
+        public int Maneuver
+        {
+            get
+            {
+                int res = 0;
+                foreach (var item in Reliability)
+                {
+                    res += MilitaryManager.Instance.GetSystemReliability(item).Maneuver;
+                }
+                return res;
+            }
+        }
+
+        public int Engine
+        {
+            get
+            {
+                int res = 0;
+                foreach (var item in Reliability)
+                {
+                    res += MilitaryManager.Instance.GetSystemReliability(item).Engine;
+                }
+                return res;
+            }
+        }
+
+        /// <summary>
+        /// Урон всех систем вооружения, установленных на модели
+        /// </summary>
+        public Dictionary<int, int> HitPoints
+        {
+            get
+            {
+                Dictionary<int, int> res = new Dictionary<int, int>();
+                foreach (var item in Weapon)
+                {
+                    res.Add(item, MilitaryManager.Instance.GetSystemWeapon(item).Hitpoint);
+                }
+                return res;
+            }
+        }
+
+        public int Countermeasures
+        {
+            get
+            {
+                int res = 0;
+                foreach (var item in Electronics)
+                {
+                    res += MilitaryManager.Instance.GetSystemElectronics(item).Countermeasures;
+                }
+                return res;
+            }
+        }
+
+        public int Radar
+        {
+            get
+            {
+                int res = 0;
+                foreach (var item in Electronics)
+                {
+                    res += MilitaryManager.Instance.GetSystemElectronics(item).Radar;
+                }
+                return res;
+            }
+        }
+
+        /// <summary>
+        /// Получить список целей для данного оружия
+        /// </summary>
+        /// <param name="WeaponID"></param>
+        /// <returns></returns>
+        public List<int> GetTargetClasses(int WeaponID)
+        {
+            return MilitaryManager.Instance.GetSystemWeapon(WeaponID).TargetClasses;
+        }
+
+
+        /// <summary>
+        /// Урон конкретной системы вооружения
+        /// </summary>
+        /// <param name="WeaponID"></param>
+        /// <returns></returns>
+        public int GetHitPoints(int WeaponID)
+        {
+            return MilitaryManager.Instance.GetSystemWeapon(WeaponID).Hitpoint;
+        }
+
+        public SystemWeapon GetWeapon(int WeaponID)
+        {
+            return MilitaryManager.Instance.GetSystemWeapon(WeaponID);
         }
     }
 
@@ -156,13 +296,15 @@ namespace nsMilitary
 
     public class SystemWeapon : UnitSystemBaseClass
     {
-        public List<int> TargetClasses; //Классы юнитов-целей
+        public List<int> TargetClasses { get; private set; } //Классы юнитов-целей
+        public int FireCost;    //Сколько Supply отнимается при выстреле
 
         public SystemWeapon(int authority, string systemName, int version, double initCost, double cost, int load, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses,
-        int hitpoint, int range, List<int> targetClasses)
+        int hitpoint, int range, List<int> targetClasses, int fireCost)
         : base(authority, systemName, version, initCost, cost, load, militaryGeneration, investigated, active, upgradeCount, masterClasses, hitpoint, range)
         {
             TargetClasses = targetClasses;
+            FireCost = fireCost;
         }
 
 
@@ -233,5 +375,12 @@ namespace nsMilitary
             get { return Par2; }
         }
 
+    }
+
+    public class UnitClass
+    {
+        public int ClassID;
+        public string Name;
+        public int StartPosition;   //Начальное положение на поле боя (клетка, начиная от центра)
     }
 }
