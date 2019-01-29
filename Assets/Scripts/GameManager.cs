@@ -32,6 +32,7 @@ public class GameManager : MonoBehaviour {
         GM = this;
 
         GameState = GameStates.Initial;
+        Assets.SimpleLocalization.LocalizationManager.Read();
     }
 
     private void Start()
