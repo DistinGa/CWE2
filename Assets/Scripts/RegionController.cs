@@ -251,9 +251,15 @@ public class RegionController
     {
         f_TurnIsDone = false;
 
-        //Действия ИИ
-
-        //Если человек (Нужно активировать кнопку "Ход")
+        if (AI)
+        {
+            //Действия ИИ
+            GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.AITurn);
+        }
+        else
+        {
+            //Если человек (Нужно активировать кнопку "Ход")
+        }
     }
 
     /// <summary>

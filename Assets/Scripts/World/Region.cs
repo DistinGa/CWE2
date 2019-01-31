@@ -79,6 +79,18 @@ namespace nsWorld
             get { return _RegData.MovementValue; }
         }
 
+        public int Moral
+        {
+            get { return _RegData.Moral; }
+
+            private set { _RegData.Moral = value; }
+        }
+
+        public int Authority
+        {
+            get { return _RegData.Authority; }
+        }
+
         /// <summary>
         /// Поочерёдный ход региона.
         /// Неконтролируемые выполняют свои действия, контролируемые передают управление ИИ или игроку
@@ -88,9 +100,17 @@ namespace nsWorld
             if (RegionController == null)
             {
                 //Действия неконтролируемого региона
+
+                //Участие в боях
+                List<nsCombat.Combat_DS> combats = World.TheWorld.Combats.Values.Where(c => c.RegID == _RegID || c.AttackerRegID == _RegID).ToList();
+                foreach (var item in combats)
+                {
+                    nsCombat.CombatManager.Instance.CommonTurn(item, _RegID);
+                }
             }
             else
             {
+                //Действия контролируемого региона
                 RegionController.TurnStart();
             }
         }
@@ -168,6 +188,7 @@ namespace nsWorld
         private void OnTurn(object sender, EventArgs e)
         {
             ParlamentProcess();
+            Moral += ProsperityLevel;
         }
 
         private void EndOfYear(object sender, EventArgs e)
@@ -553,5 +574,6 @@ namespace nsWorld
         public int ProsperityLevel; //+-ProspMaxValue
         public List<PoliticParty> Parties;
         public int MovementValue;   //Насколько быстро военные юниты перемещаются по региону во время боя
+        public int Moral;
     }
 }

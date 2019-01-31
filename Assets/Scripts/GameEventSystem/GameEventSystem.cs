@@ -19,6 +19,7 @@ namespace nsEventSystem
             public static readonly EventTypeClass NewMonthEvents = new EventTypeClass();
             public static readonly EventTypeClass EndYearEvents = new EventTypeClass();
             public static readonly EventTypeClass NewYearEvents = new EventTypeClass();
+            public static readonly EventTypeClass AITurn = new EventTypeClass();    //Ход ИИ
             //События без параметров, где важен sender
             public static readonly EventTypeClass SpyNetCompletesDipMission = new EventTypeClass(); //Дипломатическая миссия выполнена
 

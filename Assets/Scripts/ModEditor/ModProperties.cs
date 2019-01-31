@@ -60,6 +60,8 @@ namespace ModEditor
         //Combat
         public int FireCost;    //Сколько Supply отнимается при выстреле
         public int CombatArea, CenterCombatArea;    //Размер поля боя, и центральная облать (количество линий для каждой стороны)
+        public int AggressorMoralPenalty;           //Штраф к морали за агрессию
+        public int RetreatMoralPenalty;           //Штраф к морали за проигрыш в фазе войны
 
         private ModProperties()
         {
