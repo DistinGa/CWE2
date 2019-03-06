@@ -101,17 +101,18 @@ namespace nsWorld
             {
                 //Действия неконтролируемого региона
 
-                //Участие в боях
-                List<nsCombat.Combat_DS> combats = World.TheWorld.Combats.Values.Where(c => c.RegID == _RegID || c.AttackerRegID == _RegID).ToList();
-                foreach (var item in combats)
-                {
-                    nsCombat.CombatManager.Instance.CommonTurn(item, _RegID);
-                }
             }
             else
             {
                 //Действия контролируемого региона
                 RegionController.TurnStart();
+            }
+
+            //Участие в боях
+            List<nsCombat.CombatData> combats = nsCombat.CombatManager.Instance.GetCombatsForReg(_RegID);
+            foreach (var item in combats)
+            {
+                nsCombat.CombatManager.Instance.CommonTurn(item, _RegID);
             }
         }
 
@@ -568,7 +569,6 @@ namespace nsWorld
         public int Score;
         public int Authority;
         public List<int> Influence, Radicals;
-        public Dictionary<int, int> GovForces, OppForces;  //Key - MilitaryUnit ID; Value - amount
         public int GNP;
         public List<int> GNPhistory;
         public int ProsperityLevel; //+-ProspMaxValue

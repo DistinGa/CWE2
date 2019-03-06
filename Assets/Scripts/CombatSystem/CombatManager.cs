@@ -10,10 +10,18 @@ namespace nsCombat
     public class CombatManager
     {
         public static CombatManager Instance;
+        CombatManager_DS _combatManager_Data;
+
+        static CombatManager()
+        {
+            new CombatManager();
+        }
 
         public CombatManager()
         {
             Instance = this;
+
+            _combatManager_Data = new CombatManager_DS();
 
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndOfCombat, EndOfCombat);
@@ -25,54 +33,90 @@ namespace nsCombat
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndOfCombat, EndOfCombat);
         }
 
-        /// <summary>
-        /// Получить список юнитов указанного региона
-        /// </summary>
-        public List<CombatUnit> GetMyUnits(int RegID)
+        public CombatManager_DS CombatManager_Data
         {
-            Combat_DS combatData = nsWorld.World.TheWorld.Combats[RegID];
-            List<CombatUnit> res = new List<CombatUnit>();
+            get { return _combatManager_Data; }
+        }
 
-            if (RegID == combatData.RegID)
-                res = combatData.DefenderUnits.Values.ToList();
-            else if (RegID == combatData.AttackerRegID)
-                res = combatData.AttackerUnits.Values.ToList();
+        public Dictionary<int, CombatData> Combats
+        {
+            get
+            {
+                return _combatManager_Data.Combats;
+            }
+        }
+
+        public List<CombatData> GetCombatsForReg(int RegID)
+        {
+            List<CombatData> res = new List<CombatData>();
+
+            res = Combats.Values.Where(c => c.RegID == RegID || c.AttackerRegID == RegID).ToList();
+
+            nsWorld.Region_Op region = nsWorld.World.TheWorld.GetRegion(RegID);
+            if (region.RegionController != null)
+            {
+                // Добавляем бои, где юниты отданы в помощь
+                res.AddRange(
+                    Combats.Values.Where(
+                        c => c.AttackerUnits.Values.Where(u => u.Unit.Authority == region.Authority).Count() > 0
+                        || c.DefenderUnits.Values.Where(u => u.Unit.Authority == region.Authority).Count() > 0
+                        ).ToList()
+                    );
+            }
 
             return res;
         }
 
-        /// <summary>
-        /// Получить список юнитов оппонента для указанного региона
-        /// </summary>
-        /// <param name="RegID"></param>
-        /// <returns></returns>
-        public List<CombatUnit> GetOpponentsUnits(int RegID)
+        public void AddCombat(int RegID, int AttackerRegID)
         {
-            Combat_DS combatData = nsWorld.World.TheWorld.Combats[RegID];
-            List<CombatUnit> res = new List<CombatUnit>();
+            var combatData = new CombatData()
+            {
+                Active = true,
+                RegID = RegID,
+                AttackerRegID = AttackerRegID,
+                AttackerMoral = nsWorld.World.TheWorld.GetRegion(AttackerRegID).Moral,
+                DefenderMoral = nsWorld.World.TheWorld.GetRegion(RegID).Moral,
+                //Позже прописать определение штрафа от проигрыша на фазе войны
+                AttackerMoralPenalty = ModEditor.ModProperties.Instance.AggressorMoralPenalty,
+                DefenderMoralPenalty = 0,
+                CombatArea = ModEditor.ModProperties.Instance.CombatArea,
+                CenterCombatArea = ModEditor.ModProperties.Instance.CenterCombatArea,
+                MovementValue = nsWorld.World.TheWorld.GetRegion(RegID).MovementValue
+            };
 
-            if (RegID == combatData.RegID)
-                res = combatData.AttackerUnits.Values.ToList();
-            else if (RegID == combatData.AttackerRegID)
-                res = combatData.DefenderUnits.Values.ToList();
+            //Добавление юнитов
 
-            return res;
+            AddCombat(combatData);
         }
 
-        public void Attack(CombatUnit Attacker, CombatUnit Defender, int AttackerWeaponID)
+        public void AddCombat(CombatData combatData)
+        {
+            Combats[combatData.RegID] = combatData;
+        }
+
+        public void DeleteCombat(int ID)
+        {
+            Combats.Remove(ID);
+        }
+
+
+
+        public void Attack(CombatUnit Attacker, CombatUnit Target, int AttackerWeaponID)
         {
             if (!Attacker.WeaponReady[AttackerWeaponID])
+                return;
+            if (Attacker.Supply < Attacker.Unit.GetFireCost(AttackerWeaponID))
                 return;
 
             Attacker.Fire(AttackerWeaponID);
 
-            int DamageAmount = Attacker.GetDamageAmount(Defender, AttackerWeaponID);
+            int DamageAmount = Attacker.GetDamageAmount(Target, AttackerWeaponID);
 
             if (DamageAmount > 0)
-                Defender.TakeDamage(DamageAmount);
+                Target.TakeDamage(DamageAmount);
         }
 
-        public CombatUnit GetCombatUnit(Combat_DS combatData, bool Attacker, int CombatUnitID)
+        public CombatUnit GetCombatUnit(CombatData combatData, bool Attacker, int CombatUnitID)
         {
             Dictionary<int, CombatUnit> CUList;
             if (Attacker)
@@ -83,14 +127,28 @@ namespace nsCombat
             return CUList[CombatUnitID];
         }
 
+        public void DeleteCombatUnit(CombatData combatData, bool Attacker, int CombatUnitID)
+        {
+            if (Attacker)
+            {
+                if (combatData.AttackerUnits.ContainsKey(CombatUnitID))
+                    combatData.AttackerUnits.Remove(CombatUnitID);
+            }
+            else
+            {
+                if (combatData.DefenderUnits.ContainsKey(CombatUnitID))
+                    combatData.DefenderUnits.Remove(CombatUnitID);
+            }
+        }
+
         /// <summary>
         /// Движение к центру
         /// </summary>
         /// <param name="Attacker"></param>
         /// <param name="CombatUnitID"></param>
-        public void MoveForward(Combat_DS combatData, CombatUnit CU)
+        public void MoveForward(CombatData combatData, CombatUnit CU)
         {
-            if (CU.Position > 1) CU.Move(-1, nsWorld.World.TheWorld.GetRegion(combatData.RegID).MovementValue);
+            if (CU.Position > 1) CU.Move(-1);
         }
 
         /// <summary>
@@ -98,9 +156,9 @@ namespace nsCombat
         /// </summary>
         /// <param name="Attacker"></param>
         /// <param name="CombatUnitID"></param>
-        public void MoveBackward(Combat_DS combatData, CombatUnit CU)
+        public void MoveBackward(CombatData combatData, CombatUnit CU)
         {
-            if (CU.Position < combatData.CombatArea) CU.Move(1, nsWorld.World.TheWorld.GetRegion(combatData.RegID).MovementValue);
+            if (CU.Position < combatData.CombatArea) CU.Move(1);
         }
 
         /// <summary>
@@ -109,7 +167,7 @@ namespace nsCombat
         /// <param name="Attacker">За какую сторону будут воевать юниты (за агрессора или за защищающегося)</param>
         /// <param name="UnitID"></param>
         /// <param name="Amount"></param>
-        public void AddCombatUnits(Combat_DS combatData, bool Attacker, int UnitID, int Amount, int HomeBaseID)
+        public void AddCombatUnits(CombatData combatData, bool Attacker, int UnitID, int Amount, int HomeBaseID)
         {
             Dictionary<int, CombatUnit> CUList;
             if (Attacker)
@@ -124,9 +182,83 @@ namespace nsCombat
             else
             {
                 //Иначе создаём новую
-                cu = new CombatUnit(UnitID, Amount, CUList.Keys.Max(), HomeBaseID);
+                cu = new CombatUnit(CUList.Keys.Max() + 1, UnitID, Amount, combatData.MovementValue, HomeBaseID);
                 cu.Position = combatData.CombatArea;
                 CUList.Add(cu.ID, cu);
+            }
+        }
+
+        /// <summary>
+        /// Получить список своих юнитов и юнитов противника в указанном бою.
+        /// </summary>
+        /// <param name="combatData"></param>
+        /// <param name="RegID">Индекс региона, для которого юниты - свои</param>
+        /// <param name="MyUnits"></param>
+        /// <param name="Opponents"></param>
+        public void GetUnits(CombatData combatData, int RegID, out List<CombatUnit> MyUnits, out List<CombatUnit> Opponents)
+        {
+            MyUnits = new List<CombatUnit>();
+            Opponents = new List<CombatUnit>();
+
+            if (RegID == combatData.RegID)
+            {
+                MyUnits = combatData.DefenderUnits.Values.ToList();
+                Opponents = combatData.AttackerUnits.Values.ToList();
+            }
+
+            if (RegID == combatData.AttackerRegID)
+            {
+                MyUnits = combatData.AttackerUnits.Values.ToList();
+                Opponents = combatData.DefenderUnits.Values.ToList();
+            }
+
+            //Если юниты отданы в поддержку
+            if (RegID != combatData.RegID && RegID != combatData.AttackerRegID)
+            {
+                nsWorld.Region_Op region = nsWorld.World.TheWorld.GetRegion(RegID);
+
+                var addMyUnits = combatData.AttackerUnits.Values.Where(v => v.Unit.Authority == region.Authority).ToList();
+                if (addMyUnits.Count > 0)
+                {
+                    MyUnits.AddRange(addMyUnits);
+                    Opponents = combatData.DefenderUnits.Values.ToList();
+                }
+                else
+                {
+                    addMyUnits = combatData.DefenderUnits.Values.Where(v => v.Unit.Authority == region.Authority).ToList();
+                    if (addMyUnits.Count > 0)
+                    {
+                        MyUnits.AddRange(addMyUnits);
+                        Opponents = combatData.AttackerUnits.Values.ToList();
+                    }
+                }
+            }
+        }
+
+        public void CommonTurn(CombatData combatData, int RegID)
+        {
+            List<CombatUnit> MyUnits = new List<CombatUnit>();
+            List<CombatUnit> Opponents = new List<CombatUnit>();
+
+            if (combatData.RegID == RegID && combatData.AttackerRegID == RegID)
+            {
+                // Гражданская война. Юниты нападающего и защищающегося принадлежат одному региону.
+                // Выполняем автоматический ход сначала для одной стороны, потом для другой.
+                MyUnits = combatData.AttackerUnits.Values.ToList();
+                Opponents = combatData.DefenderUnits.Values.ToList();
+                CommonTurn(combatData, MyUnits, Opponents);
+
+                Opponents = combatData.AttackerUnits.Values.ToList();
+                MyUnits = combatData.DefenderUnits.Values.ToList();
+                CommonTurn(combatData, MyUnits, Opponents);
+            }
+            else
+            {
+                GetUnits(combatData, RegID, out MyUnits, out Opponents);
+                if (combatData.RegID != RegID && combatData.AttackerRegID != RegID)
+                    return;
+
+                CommonTurn(combatData, MyUnits, Opponents);
             }
         }
 
@@ -135,48 +267,7 @@ namespace nsCombat
         /// </summary>
         /// <param name="combatData"></param>
         /// <param name="RegID">Регион, который выполняет свой ход</param>
-        public void CommonTurn(Combat_DS combatData, int RegID)
-        {
-            List<CombatUnit> MyUnits = new List<CombatUnit>();
-            List<CombatUnit> Opponents = new List<CombatUnit>();
-
-            if (RegID == combatData.RegID)
-            {
-                MyUnits = combatData.DefenderUnits.Values.ToList();
-                Opponents = combatData.AttackerUnits.Values.ToList();
-                CommonTurn_inner(combatData, MyUnits, Opponents);
-            }
-
-            if (RegID == combatData.AttackerRegID)
-            {
-                MyUnits = combatData.AttackerUnits.Values.ToList();
-                Opponents = combatData.DefenderUnits.Values.ToList();
-                CommonTurn_inner(combatData, MyUnits, Opponents);
-            }
-
-            //Если юниты отданы в поддержку
-            if (RegID != combatData.RegID && RegID != combatData.AttackerRegID)
-            {
-                nsWorld.Region_Op region = nsWorld.World.TheWorld.GetRegion(RegID);
-
-                MyUnits = combatData.AttackerUnits.Values.Where(v => v.Unit.Authority == region.Authority).ToList();
-                if (MyUnits.Count > 0)
-                {
-                    Opponents = combatData.DefenderUnits.Values.ToList();
-                    CommonTurn_inner(combatData, MyUnits, Opponents);
-                }
-
-                MyUnits = combatData.DefenderUnits.Values.Where(v => v.Unit.Authority == region.Authority).ToList();
-                if (MyUnits.Count > 0)
-                {
-                    Opponents = combatData.AttackerUnits.Values.ToList();
-                    CommonTurn_inner(combatData, MyUnits, Opponents);
-                }
-
-            }
-        }
-
-        private void CommonTurn_inner(Combat_DS combatData, List<CombatUnit> MyUnits, List<CombatUnit> Opponents)
+        private void CommonTurn(CombatData combatData, List<CombatUnit> MyUnits, List<CombatUnit> Opponents)
         {
             foreach (CombatUnit attackerUnit in MyUnits)
             {
@@ -194,7 +285,7 @@ namespace nsCombat
                     }
 
                     //Если Supply меньше, чем FireCost первого оружия, отправляем группу юнитов на перезарядку
-                    if (attackerUnit.Supply < MilitaryManager.Instance.GetSystemWeapon(attackerUnit.Unit.Weapon[0]).FireCost)
+                    if (attackerUnit.Supply < attackerUnit.Unit.GetFireCost(attackerUnit.Unit.AvailableWeapons[0]))
                     {
                         attackerUnit.Resupply();
                         return;
@@ -202,9 +293,9 @@ namespace nsCombat
 
                     //Атака
                     bool hasTargets = false;
-                    foreach (var weaponID in attackerUnit.Unit.Weapon)
+                    foreach (var weaponID in attackerUnit.Unit.AvailableWeapons)
                     {
-                        if (attackerUnit.Supply >= MilitaryManager.Instance.GetSystemWeapon(weaponID).FireCost)
+                        if (attackerUnit.Supply >= attackerUnit.Unit.GetFireCost(weaponID))
                         {
                             List<CombatUnit> targets = attackerUnit.GetTargetsInrange(Opponents, weaponID);
                             //Стрелять будем по самому слабому
@@ -232,7 +323,7 @@ namespace nsCombat
         /// <summary>
         /// Проверка победы в бою
         /// </summary>
-        void CheckCombatResult(Combat_DS combatData)
+        public void CheckCombatResult(CombatData combatData)
         {
             if (combatData.AttackerMoral <= 0)
             {
@@ -296,8 +387,8 @@ namespace nsCombat
                         if (item.HomeBaseID == -1)
                         {
                             //Домашний пул
-                            BaseID = item.Unit.Authority;
-                            MilitaryManager.Instance.SendMilitaryUnits(item.Unit.Authority, DestinationTypes.War, 0, DestinationTypes.MainPool, item.Unit.Authority, item.UnitID, item.Amount);
+                            BaseID = nsWorld.World.TheWorld.GetRegionController(item.Unit.Authority).HomelandID;
+                            MilitaryManager.Instance.SendMilitaryUnits(item.Unit.Authority, DestinationTypes.War, 0, DestinationTypes.MainPool, BaseID, item.UnitID, item.Amount);
                         }
                         else
                         {
@@ -313,7 +404,7 @@ namespace nsCombat
         #region Events
         void OnTurn(object sender, EventArgs e)
         {
-            foreach (var combatData in nsWorld.World.TheWorld.Combats.Values.ToList())
+            foreach (var combatData in Combats.Values.ToList())
             {
                 if (!combatData.Active)
                     return;
@@ -321,16 +412,42 @@ namespace nsCombat
                 combatData.AttackerMoral -= combatData.AttackerMoralPenalty;
                 combatData.DefenderMoral -= combatData.DefenderMoralPenalty;
 
+                List<int> _tmpList = new List<int>();
                 foreach (CombatUnit item in combatData.AttackerUnits.Values.ToList())
                 {
-                    item.MovementCnt--;
+                    item.MovementCnt -= item.Engine;
                     item.ActionSelected = false;
+                    foreach (var wpID in item.WeaponReady.Keys.ToList())
+                    {
+                        item.WeaponReady[wpID] = true;
+                    }
+
+                    if (item.Armor <= 0)
+                        _tmpList.Add(item.ID);
                 }
 
+                foreach (var cuID in _tmpList)
+                {
+                    combatData.AttackerUnits.Remove(cuID);
+                }
+
+                _tmpList = new List<int>();
                 foreach (CombatUnit item in combatData.DefenderUnits.Values.ToList())
                 {
-                    item.MovementCnt--;
+                    item.MovementCnt -= item.Engine;
                     item.ActionSelected = false;
+                    foreach (var wpID in item.WeaponReady.Keys.ToList())
+                    {
+                        item.WeaponReady[wpID] = true;
+                    }
+
+                    if (item.Armor <= 0)
+                        _tmpList.Add(item.ID);
+                }
+
+                foreach (var cuID in _tmpList)
+                {
+                    combatData.AttackerUnits.Remove(cuID);
                 }
 
                 CheckCombatResult(combatData);
@@ -341,32 +458,29 @@ namespace nsCombat
         {
             int WinnerRegID = (e as EndOfCombat_EventArgs).WinnerRegID;
             int combatID = (e as EndOfCombat_EventArgs).CombatID;
-            Combat_DS combatData = nsWorld.World.TheWorld.Combats[combatID];
+            CombatData combatData = Combats[combatID];
 
-            //Возвращение войск "домой"
-            ReturnMilUnits(combatData.AttackerUnits.Values.ToList());
-            ReturnMilUnits(combatData.DefenderUnits.Values.ToList());
+            ////Возвращение войск "домой"
+            //ReturnMilUnits(combatData.AttackerUnits.Values.ToList());
+            //ReturnMilUnits(combatData.DefenderUnits.Values.ToList());
 
             combatData.AttackerUnits.Clear();
             combatData.DefenderUnits.Clear();
 
             combatData.Active = false;
 
-            nsWorld.World.TheWorld.DeleteCombat(combatID);
+            DeleteCombat(combatID);
         }
         #endregion Events
     }
 
-
-    public class Combat_DS
+    public class CombatManager_DS:ISavable
     {
-        public bool Active;
-        public Dictionary<int, CombatUnit> AttackerUnits, DefenderUnits;
-        public int RegID;   //Регион, в котором проходит сражение (защищающийся)
-        public int AttackerRegID;   //Регион-агрессор
-        public int AttackerMoral, DefenderMoral;
-        public int AttackerMoralPenalty, DefenderMoralPenalty;
-        public int CombatArea;    //Размер поля боя(количество линий для каждой стороны)
-        public int CenterCombatArea;    //Размер центральной облати (количество линий для каждой стороны)
+        public Dictionary<int, CombatData> Combats; //Все идущие в данный момент бои (Key - индекс региона, где идёт война (Defender)).
+
+        public CombatManager_DS()
+        {
+            Combats = new Dictionary<int, CombatData>();
+        }
     }
 }

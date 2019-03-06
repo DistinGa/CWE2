@@ -33,6 +33,40 @@ public class GameManager : MonoBehaviour {
 
         GameState = GameStates.Initial;
         Assets.SimpleLocalization.LocalizationManager.Read();
+
+        //// Тестирование GA
+        //const int _targetsCount = 7, _weaponsCount = 5;
+        //int[] _targetsValue = new int[_targetsCount] {100,80,110,50,60,70,90};
+        //int[] _weaponsFireCost = new int[_weaponsCount] { 100, 100, 100, 100, 100 };
+        //Dictionary<int, int> _dictSupply = new Dictionary<int, int>()
+        //{
+        //    {1, 100 },
+        //    {2, 100 },
+        //    {3, 100 },
+        //    {4, 100 }
+        //};
+        //Dictionary<int, List<int>> _dictWeapons = new Dictionary<int, List<int>>()
+        //{
+        //    { 1, new List<int>() { 0 } },
+        //    { 2, new List<int>() { 1 } },
+        //    { 3, new List<int>() { 2 } },
+        //    { 4, new List<int>() { 3 } },
+        //    { 5, new List<int>() { 4 } }
+        //};
+        //int[,] _damageMatrix = new int[_weaponsCount, _targetsCount]
+        //    {
+        //        {80, 50, 0, 70, 60, 50, 60 },
+        //        {70, 40, 80, 0, 40, 30, 50 },
+        //        {60, 50, 70, 30, 40, 50, 60 },
+        //        {20, 20, 50, 0, 30, 40, 30 },
+        //        {40, 30, 50, 10, 20, 20, 40 }
+        //    };
+
+        //nsAI.GeneticAlgorithm _GA = new nsAI.GeneticAlgorithm(_damageMatrix, _targetsValue, _weaponsFireCost, _dictWeapons, _dictSupply);
+
+        //var _tmp = DateTime.Now;
+        //var _GAres = _GA.GetSolution(1000, false);
+        //print((DateTime.Now - _tmp).Milliseconds);
     }
 
     private void Start()
@@ -90,7 +124,7 @@ public class GameManager : MonoBehaviour {
     {
         ModProperties.CreateModProperties();
         World.CreateWorld();
-        MilitaryManager.CreateMilitaryManager();
+        MilitaryManager.CreateMilitaryManager(new MilitaryManager_Ds());
 
         GameState = GameStates.Regular;
     }

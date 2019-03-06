@@ -15,17 +15,20 @@ namespace nsMilitary
 
         MilitaryManager_Ds _MilitaryManagerData;
 
-        private MilitaryManager()
+        private MilitaryManager(MilitaryManager_Ds MilitaryManagerData)
         {
             Instance = this;
+
+            _MilitaryManagerData = MilitaryManagerData;
+            UnitClasses = new Dictionary<int, UnitClass>();
 
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.ProduceNewMilitaryUnit, ProduceNewMilitaryUnit);
         }
 
-        public static void CreateMilitaryManager()
+        public static void CreateMilitaryManager(MilitaryManager_Ds MilitaryManagerData)
         {
             if (Instance == null)
-                new MilitaryManager();
+                new MilitaryManager(MilitaryManagerData);
         }
 
         public SeaPool GetSeaPool(int ind)
@@ -47,7 +50,7 @@ namespace nsMilitary
         /// <summary>
         /// Возвращает домашний военный пул
         /// </summary>
-        /// <param name="ID">Authority</param>
+        /// <param name="ID">индекс региона</param>
         /// <returns></returns>
         public MilitaryPool GetMainMilPool(int ID)
         {
@@ -57,7 +60,7 @@ namespace nsMilitary
                 return _MilitaryManagerData.MainPools[ID];
         }
 
-        public MilitaryUnit GetMilitaryUnit(int _ID)
+        public IMilitaryUnit GetMilitaryUnit(int _ID)
         {
             return _MilitaryManagerData.MilitaryUnits[_ID];
         }
@@ -94,22 +97,28 @@ namespace nsMilitary
             return _MilitaryManagerData.ElectronicsSystems[_ID];
         }
 
-        public void NewMilitaryUnit(int authority, int unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
+        public int NewMilitaryUnit(IMilitaryUnit militaryUnit)
         {
-            int maxKey = _MilitaryManagerData.MilitaryUnits.Keys.Max() + 1;
-            _MilitaryManagerData.MilitaryUnits.Add(maxKey, new MilitaryUnit(authority, unitType, unitClass, unitName, body, weapon, reliability, electronics));
+            int maxKey = _MilitaryManagerData.MilitaryUnits.Count == 0? 0: _MilitaryManagerData.MilitaryUnits.Keys.Max() + 1;
+            _MilitaryManagerData.MilitaryUnits.Add(maxKey, militaryUnit);
+            return maxKey;
+        }
+
+        public int NewMilitaryUnit(int authority, int unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
+        {
+            return NewMilitaryUnit(new MilitaryUnit(authority, unitType, unitClass, unitName, body, weapon, reliability, electronics));
         }
 
         public void NewBodySystem(int authority, string systemName, double initCost, double cost, int capacity, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses, int armor, int stealth)
         {
-            int maxKey = _MilitaryManagerData.BodySystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.BodySystems.Count == 0? 0: _MilitaryManagerData.BodySystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.BodySystems.Where(d => d.Value.SystemName == systemName).Max((d) => d.Value.Version) + 1;
             _MilitaryManagerData.BodySystems.Add(maxKey, new SystemBody(authority, systemName, newVersion, initCost, cost, capacity, militaryGeneration, investigated, active, upgradeCount, masterClasses, armor, stealth));
         }
 
         public void NewBodySystem(SystemBody NewSystem)
         {
-            int maxKey = _MilitaryManagerData.BodySystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.BodySystems.Count == 0? 0: _MilitaryManagerData.BodySystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.BodySystems.Where(d => d.Value.SystemName == NewSystem.SystemName).Max((d) => d.Value.Version) + 1;
             NewSystem.Version = newVersion;
             _MilitaryManagerData.BodySystems.Add(maxKey, NewSystem);
@@ -117,14 +126,14 @@ namespace nsMilitary
 
         public void NewWeaponSystem(int authority, string systemName, double initCost, double cost, int load, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses, int hitpoint, int range, List<int> targetClasses, int fireCost)
         {
-            int maxKey = _MilitaryManagerData.WeaponSystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.WeaponSystems.Count == 0? 0: _MilitaryManagerData.WeaponSystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.WeaponSystems.Where(d => d.Value.SystemName == systemName).Max((d) => d.Value.Version) + 1;
             _MilitaryManagerData.WeaponSystems.Add(maxKey, new SystemWeapon(authority, systemName, newVersion, initCost, cost, load, militaryGeneration, investigated, active, upgradeCount, masterClasses, hitpoint, range, targetClasses, fireCost));
         }
 
         public void NewWeaponSystem(SystemWeapon NewSystem)
         {
-            int maxKey = _MilitaryManagerData.WeaponSystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.WeaponSystems.Count == 0? 0: _MilitaryManagerData.WeaponSystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.WeaponSystems.Where(d => d.Value.SystemName == NewSystem.SystemName).Max((d) => d.Value.Version) + 1;
             NewSystem.Version = newVersion;
             _MilitaryManagerData.WeaponSystems.Add(maxKey, NewSystem);
@@ -132,14 +141,14 @@ namespace nsMilitary
 
         public void NewReliabilitySystem(int authority, string systemName, double initCost, double cost, int load, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses, int maneuver, int engine)
         {
-            int maxKey = _MilitaryManagerData.ReliabilitySystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.ReliabilitySystems.Count == 0? 0: _MilitaryManagerData.ReliabilitySystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.ReliabilitySystems.Where(d => d.Value.SystemName == systemName).Max((d) => d.Value.Version) + 1;
             _MilitaryManagerData.ReliabilitySystems.Add(maxKey, new SystemReliability(authority, systemName, newVersion, initCost, cost, load, militaryGeneration, investigated, active, upgradeCount, masterClasses, maneuver, engine));
         }
 
         public void NewReliabilitySystem(SystemReliability NewSystem)
         {
-            int maxKey = _MilitaryManagerData.ReliabilitySystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.ReliabilitySystems.Count == 0? 0: _MilitaryManagerData.ReliabilitySystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.ReliabilitySystems.Where(d => d.Value.SystemName == NewSystem.SystemName).Max((d) => d.Value.Version) + 1;
             NewSystem.Version = newVersion;
             _MilitaryManagerData.ReliabilitySystems.Add(maxKey, NewSystem);
@@ -147,14 +156,14 @@ namespace nsMilitary
 
         public void NewElectronicsSystem(int authority, string systemName, double initCost, double cost, int load, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses, int countermeasures, int radar)
         {
-            int maxKey = _MilitaryManagerData.ElectronicsSystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.ElectronicsSystems.Count == 0? 0: _MilitaryManagerData.ElectronicsSystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.ElectronicsSystems.Where(d => d.Value.SystemName == systemName).Max((d) => d.Value.Version) + 1;
             _MilitaryManagerData.ElectronicsSystems.Add(maxKey, new SystemElectronics(authority, systemName, newVersion, initCost, cost, load, militaryGeneration, investigated, active, upgradeCount, masterClasses, countermeasures, radar));
         }
 
         public void NewElectronicsSystem(SystemElectronics NewSystem)
         {
-            int maxKey = _MilitaryManagerData.ElectronicsSystems.Keys.Max() + 1;
+            int maxKey = _MilitaryManagerData.ElectronicsSystems.Count == 0? 0: _MilitaryManagerData.ElectronicsSystems.Keys.Max() + 1;
             int newVersion = _MilitaryManagerData.ElectronicsSystems.Where(d => d.Value.SystemName == NewSystem.SystemName).Max((d) => d.Value.Version) + 1;
             NewSystem.Version = newVersion;
             _MilitaryManagerData.ElectronicsSystems.Add(maxKey, NewSystem);
@@ -270,7 +279,7 @@ namespace nsMilitary
         void ProduceNewMilitaryUnit(object sender, EventArgs ea)
         {
             ProduceNewUnits_EventArgs e = ea as ProduceNewUnits_EventArgs;
-            GetMainMilPool(e.AuthID).AddUnits(e.UnitID, e.Amount);
+            GetMainMilPool(e.RegID).AddUnits(e.UnitID, e.Amount);
         }
         #endregion
     }
@@ -278,17 +287,18 @@ namespace nsMilitary
     public class MilitaryManager_Ds:ISavable
     {
         public List<MilitaryBase> MilBases;
-        public Dictionary<int, MilitaryUnit> MilitaryUnits; //Список всех существующих юнитов в игре
+        public Dictionary<int, IMilitaryUnit> MilitaryUnits; //Список всех существующих юнитов в игре
         public Dictionary<int, SystemBody> BodySystems; //Список всех существующих SystemBody в игре
         public Dictionary<int, SystemWeapon> WeaponSystems; //Список всех существующих SystemWeapon в игре
         public Dictionary<int, SystemReliability> ReliabilitySystems; //Список всех существующих SystemReliability в игре
         public Dictionary<int, SystemElectronics> ElectronicsSystems; //Список всех существующих SystemElectronics в игре
         public List<UnitOnTheWay> MilitaryUnitsOnTheWay; //Юниты в процессе перемещения
-        public List<MilitaryPool> MainPools;    //Основные военные пулы контролируемых стран (индекс - _Authorities)
+        public List<MilitaryPool> MainPools;    //Основные военные пулы контролируемых стран (индекс - индекс региона)
         public List<SeaPool> _SeaPools;
 
         public MilitaryManager_Ds()
         {
+            MilitaryUnits = new Dictionary<int, IMilitaryUnit>();
             MilBases = new List<MilitaryBase>();
             _SeaPools = new List<SeaPool>();
         }

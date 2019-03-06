@@ -7,7 +7,7 @@ namespace nsEventSystem
 
     public sealed class ProduceNewUnits_EventArgs : EventArgs
     {
-        public int AuthID, UnitID, Amount;
+        public int RegID, UnitID, Amount;
     }
 
     public sealed class AbortPartyLawInRegion_EventArgs : EventArgs

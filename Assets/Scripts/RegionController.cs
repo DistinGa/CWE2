@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using nsWorld;
 using nsEventSystem;
-using UnityEngine;
 
 public enum SpendsSource
 {
@@ -33,27 +32,28 @@ public enum SpendsGoals
 public class RegionController
 {
     public int AuthorityID { get; private set; }
-    public Color Color { get; private set; }
     public int HomelandID { get; private set; }    //ID контролируемого региона
 
     RegionController_Ds _RegCData;
     bool f_TurnIsDone;    //флаг, показывающий, что ход сделан
+    nsAI.AI AI;
 
-    public RegionController(int Authority, int HomelandID)
+    public RegionController(int Authority, int HomelandID, nsAI.AI AI = null)
     {
         AuthorityID = Authority;
         //this.Color = Color;
         this.HomelandID = HomelandID;
+        this.AI = AI;
 
         _RegCData = new RegionController_Ds();
 
-        GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, Turn);
+        GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
     }
 
     ~RegionController()
     {
-        GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, Turn);
+        GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
     }
 
@@ -125,9 +125,10 @@ public class RegionController
     {
         get { return f_TurnIsDone; }
     }
+
     #endregion
 
-    private void Turn(object sender, EventArgs e)
+    private void OnTurn(object sender, EventArgs e)
     {
         //Производство юнитов, апгрейд и изучение технологий
         for (int i = _RegCData.Spends.Count - 1; i >= 0; i--)
@@ -251,14 +252,17 @@ public class RegionController
     {
         f_TurnIsDone = false;
 
-        if (AI)
+        if (AI != null)
         {
             //Действия ИИ
-            GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.AITurn);
+            AI.Turn(this.HomelandID);
+            TurnComplete();
         }
         else
         {
             //Если человек (Нужно активировать кнопку "Ход")
+
+
         }
     }
 

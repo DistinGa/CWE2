@@ -3,14 +3,16 @@ using System.Collections.Generic;
 
 namespace nsMilitary
 {
-    public class MilitaryUnit
+    public class MilitaryUnit : IMilitaryUnit
     {
-        public int Authority;
-        public int UnitType;    //Land / Sea / Air
-        public int UnitClass;   //Helicopter / Tank / Submarine ...
-        public string UnitName;
+        public string UnitName { get; private set; }
+        public int Authority { get; set; }
+        public int UnitType { get; set; }    //Land / Sea / Air
+        public int UnitClass { get; set; }   //Helicopter / Tank / Submarine ...
         public int Body;
         public List<int> Weapon, Reliability, Electronics;    //Установленные системы
+
+        private Dictionary<int, SystemWeapon> _weaponSystems;
 
         public MilitaryUnit(int authority, int unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
         {
@@ -22,6 +24,31 @@ namespace nsMilitary
             Weapon = weapon;
             Reliability = reliability;
             Electronics = electronics;
+        }
+
+        /// <summary>
+        /// Кешированный список оружия.
+        /// </summary>
+        private Dictionary<int, SystemWeapon> WeaponSystems
+        {
+            get
+            {
+                if (_weaponSystems == null)
+                {
+                    _weaponSystems = new Dictionary<int, SystemWeapon>();
+                    foreach (var weaponID in Weapon)
+                    {
+                        _weaponSystems[weaponID] = MilitaryManager.Instance.GetSystemWeapon(weaponID);
+                    }
+                }
+
+                return _weaponSystems;
+            }
+        }
+
+        public List<int> AvailableWeapons
+        {
+            get { return Weapon; }
         }
 
         /// <summary>
@@ -84,11 +111,11 @@ namespace nsMilitary
                 {
                     res -= MilitaryManager.Instance.GetSystemWeapon(item).Load;
                 }
-                foreach (var item in Weapon)
+                foreach (var item in Reliability)
                 {
                     res -= MilitaryManager.Instance.GetSystemReliability(item).Load;
                 }
-                foreach (var item in Weapon)
+                foreach (var item in Electronics)
                 {
                     res -= MilitaryManager.Instance.GetSystemElectronics(item).Load;
                 }
@@ -123,22 +150,6 @@ namespace nsMilitary
             }
         }
 
-        /// <summary>
-        /// Урон всех систем вооружения, установленных на модели
-        /// </summary>
-        public Dictionary<int, int> HitPoints
-        {
-            get
-            {
-                Dictionary<int, int> res = new Dictionary<int, int>();
-                foreach (var item in Weapon)
-                {
-                    res.Add(item, MilitaryManager.Instance.GetSystemWeapon(item).Hitpoint);
-                }
-                return res;
-            }
-        }
-
         public int Countermeasures
         {
             get
@@ -165,30 +176,24 @@ namespace nsMilitary
             }
         }
 
-        /// <summary>
-        /// Получить список целей для данного оружия
-        /// </summary>
-        /// <param name="WeaponID"></param>
-        /// <returns></returns>
-        public List<int> GetTargetClasses(int WeaponID)
+        public int GetFireCost(int weaponID)
         {
-            return MilitaryManager.Instance.GetSystemWeapon(WeaponID).TargetClasses;
+            return WeaponSystems[weaponID].FireCost;
         }
 
-
-        /// <summary>
-        /// Урон конкретной системы вооружения
-        /// </summary>
-        /// <param name="WeaponID"></param>
-        /// <returns></returns>
-        public int GetHitPoints(int WeaponID)
+        public int GetHitPoints(int weaponID)
         {
-            return MilitaryManager.Instance.GetSystemWeapon(WeaponID).Hitpoint;
+            return WeaponSystems[weaponID].Hitpoint;
         }
 
-        public SystemWeapon GetWeapon(int WeaponID)
+        public int GetRange(int weaponID)
         {
-            return MilitaryManager.Instance.GetSystemWeapon(WeaponID);
+            return WeaponSystems[weaponID].Range;
+        }
+
+        public List<int> TargetClasses(int weaponID)
+        {
+            return WeaponSystems[weaponID].TargetClasses;
         }
     }
 
@@ -377,10 +382,11 @@ namespace nsMilitary
 
     }
 
+    [System.Serializable]
     public class UnitClass
     {
-        public int ClassID;
         public string Name;
+        public int ClassID;
         public int StartPosition;   //Начальное положение на поле боя (клетка, начиная от центра)
     }
 }

@@ -83,14 +83,6 @@ namespace nsWorld
                 return _WorldData.EmbassiesList;
             }
         }
-
-        public Dictionary<int, nsCombat.Combat_DS> Combats
-        {
-            get
-            {
-                return _WorldData.Combats;
-            }
-        }
         #endregion
 
         private void LoadRegions()
@@ -115,32 +107,6 @@ namespace nsWorld
         {
             return _RegionControllers[AuthorityID];
         }
-
-        public void AddCombat(int RegID, int AttackerRegID)
-        {
-            var combatData = new nsCombat.Combat_DS()
-            {
-                Active = true,
-                RegID = RegID,
-                AttackerRegID = AttackerRegID,
-                AttackerMoral = GetRegion(AttackerRegID).Moral,
-                DefenderMoral = GetRegion(RegID).Moral,
-                //Позже прописать определение штрафа от проигрыша на фазе войны
-                AttackerMoralPenalty = ModEditor.ModProperties.Instance.AggressorMoralPenalty,
-                DefenderMoralPenalty = 0,
-                CombatArea = ModEditor.ModProperties.Instance.CombatArea,
-                CenterCombatArea = ModEditor.ModProperties.Instance.CenterCombatArea
-            };
-
-            //Добавление юнитов
-
-            _WorldData.Combats[RegID] = combatData;
-        }
-
-        public void DeleteCombat(int ID)
-        {
-            _WorldData.Combats.Remove(ID);
-        }
     }
 
 
@@ -150,12 +116,12 @@ namespace nsWorld
         public int CurrentTurn;
         public int GlobalDevLevel;
         public Dictionary<int, List<nsEmbassy.Embassy>> EmbassiesList;    //Key - RegionID, ListIndex - AuthorityID
-        public Dictionary<int, nsCombat.Combat_DS> Combats; //Все идущие в данный момент бои.
+        public Dictionary<int, nsCombat.CombatData> Combats; //Все идущие в данный момент бои (Key - индекс региона, где идёт война (Defender)).
 
         public World_Ds()
         {
             EmbassiesList = new Dictionary<int, List<nsEmbassy.Embassy>>();
-            Combats = new Dictionary<int, nsCombat.Combat_DS>();
+            Combats = new Dictionary<int, nsCombat.CombatData>();
         }
     }
 }

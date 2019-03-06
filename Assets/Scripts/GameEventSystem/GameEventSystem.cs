@@ -19,7 +19,6 @@ namespace nsEventSystem
             public static readonly EventTypeClass NewMonthEvents = new EventTypeClass();
             public static readonly EventTypeClass EndYearEvents = new EventTypeClass();
             public static readonly EventTypeClass NewYearEvents = new EventTypeClass();
-            public static readonly EventTypeClass AITurn = new EventTypeClass();    //Ход ИИ
             //События без параметров, где важен sender
             public static readonly EventTypeClass SpyNetCompletesDipMission = new EventTypeClass(); //Дипломатическая миссия выполнена
 
@@ -154,7 +153,7 @@ namespace nsEventSystem
             switch (Subject)
             {
                 case SpendsSubjects.MilitaryUnit:
-                    InvokeEvents(MyEventsTypes.ProduceNewMilitaryUnit, new ProduceNewUnits_EventArgs() {AuthID = Authority, UnitID = UnitID, Amount = 1 });
+                    InvokeEvents(MyEventsTypes.ProduceNewMilitaryUnit, new ProduceNewUnits_EventArgs() { RegID = nsWorld.World.TheWorld.GetRegionController(Authority).HomelandID, UnitID = UnitID, Amount = 1 });
                     break;
                 case SpendsSubjects.CosmoUnit:
                     break;

@@ -14,17 +14,18 @@ namespace nsCombat
         int _MovementCnt; //Счётчик перемещения (когда доходит до нуля, юнит может перемещаться)
         int _Position; //Как далеко от центра находится группа (начинается с 1)
         int _Supply;
+        int _MovementValue;  // Ограничение на перемещение, накладываемые местностью (начальное значение счётчика, из которого будет вычитаться Engine)
 
         int _Amount;
         public int ID { get; private set; }
         public int UnitID { get; private set; }
         public Dictionary<int, bool> WeaponReady { get; private set; }  //Готовность оружия к стрельбе (после выстрела сбрасывается)
-        public int HomeBaseID { get; private set; }     //Из какой базы пришли юниты и куда уюдут после окончания боя (-1 - домашний пул)
+        public int HomeBaseID { get; private set; }     //Из какой базы пришли юниты и куда уйдут после окончания боя (-1 - домашний пул)
 
-        public CombatUnit(int UnitID, int Amount, int maxID, int HomeBaseID = -1)
+        public CombatUnit(int ID, int MilitaryUnitID, int Amount, int MovementValue, int HomeBaseID = -1)
         {
-            ID = ++maxID;
-            this.UnitID = UnitID;
+            this.ID = ID;
+            UnitID = MilitaryUnitID;
             this.HomeBaseID = HomeBaseID;
             _Amount = Amount;
             _InitArmor = Amount * Unit.Armor;
@@ -33,9 +34,10 @@ namespace nsCombat
             Position = Unit.StartPosition;
             _MovementCnt = 0;
             _ActionSelected = false;
+            _MovementValue = MovementValue;
 
             WeaponReady = new Dictionary<int, bool>();
-            foreach (var item in Unit.Weapon)
+            foreach (var item in Unit.AvailableWeapons)
             {
                 WeaponReady.Add(item, true);
             }
@@ -44,10 +46,10 @@ namespace nsCombat
         #region Properties
         public int RestArmorPercent
         {
-            get { return _Armor / _InitArmor * 100; }
+            get { return (int)(_Armor * 100f / _InitArmor); }
         }
 
-        public MilitaryUnit Unit
+        public IMilitaryUnit Unit
         {
             get { return MilitaryManager.Instance.GetMilitaryUnit(UnitID); }
         }
@@ -82,6 +84,14 @@ namespace nsCombat
             set { _MovementCnt = value; }
         }
 
+        /// <summary>
+        /// Процент счётчика движения
+        /// </summary>
+        public float MovementPct
+        {
+            get { return (float)_MovementCnt / (float)_MovementValue; }
+        }
+
         public int Position
         {
             get { return _Position; }
@@ -108,11 +118,6 @@ namespace nsCombat
             get { return Unit.Stealth; }
         }
 
-        public Dictionary<int, int> HitPoints
-        {
-            get { return Unit.HitPoints; }
-        }
-
         public int Maneuver
         {
             get { return Unit.Maneuver; }
@@ -133,6 +138,9 @@ namespace nsCombat
             get { return Unit.Radar; }
         }
 
+        /// <summary>
+        /// Игрок отдал приказ группе
+        /// </summary>
         public bool ActionSelected
         {
             get { return _ActionSelected; }
@@ -142,7 +150,7 @@ namespace nsCombat
 
         public List<int> GetTargetClasses(int WeaponID)
         {
-            return Unit.GetTargetClasses(WeaponID);
+            return Unit.TargetClasses(WeaponID);
         }
 
         public int GetHitpoints(int WeaponID)
@@ -153,7 +161,7 @@ namespace nsCombat
         public void Fire(int WeaponID)
         {
             WeaponReady[WeaponID] = false;
-            Supply -= MilitaryManager.Instance.GetSystemWeapon(WeaponID).FireCost;
+            Supply -= Unit.GetFireCost(WeaponID);
             _ActionSelected = true;
         }
 
@@ -164,8 +172,10 @@ namespace nsCombat
         public void TakeDamage(int amount)
         {
             Armor -= amount;
-            Amount = Armor / Unit.Armor;
-            if (Armor % Unit.Armor > 0) Amount++;
+            if (Armor % Unit.Armor > 0)
+                Amount = Armor / Unit.Armor + 1;
+            else
+                Amount = Armor / Unit.Armor;
         }
 
         /// <summary>
@@ -182,13 +192,13 @@ namespace nsCombat
         /// </summary>
         /// <param name="CU"></param>
         /// <param name="dir">-1 - к центру; 1 - от центра</param>
-        public void Move(int dir, int MovementValue)
+        public void Move(int dir)
         {
             if (MovementCnt <= 0)
             {
                 dir = Math.Sign(dir);
                 Position += dir;
-                MovementCnt = MovementValue;
+                MovementCnt = _MovementValue;
                 _ActionSelected = true;
             }
         }
@@ -213,7 +223,7 @@ namespace nsCombat
         /// <returns></returns>
         public List<CombatUnit> GetTargetsInrange(List<CombatUnit> Opponents, int WeaponID)
         {
-            return GetTargets(Opponents, WeaponID).Where((target) => Position + target.Position - 1 < Math.Min(Radar, MilitaryManager.Instance.GetSystemWeapon(WeaponID).Range)).ToList();
+            return GetTargets(Opponents, WeaponID).Where((target) => InOperationalRange(target, WeaponID)).ToList();
         }
 
         /// <summary>
@@ -226,11 +236,25 @@ namespace nsCombat
         public int GetDamageAmount(CombatUnit Defender, int AttackerWeaponID)
         {
             CombatUnit Attacker = this;
+            // Сначала проверим операционную доступность цели.
+            if (Attacker.GetTargetClasses(AttackerWeaponID).Contains(Defender.Class))
+            {
+                if (!InOperationalRange(Defender, AttackerWeaponID))
+                    return 0;
+            }
+            else
+                return 0;
+
             int DamageAmount = Defender.Maneuver - Attacker.Maneuver;
             if (DamageAmount < 0) DamageAmount = 0;
             DamageAmount = Attacker.GetHitpoints(AttackerWeaponID) - Defender.Countermeasures * DamageAmount;
 
             return DamageAmount * Attacker.Amount;
+        }
+
+        private bool InOperationalRange(CombatUnit target, int WeaponID)
+        {
+            return Position + target.Position - 1 <= Math.Min(Radar - target.Stealth, Unit.GetRange(WeaponID));
         }
     }
 }
