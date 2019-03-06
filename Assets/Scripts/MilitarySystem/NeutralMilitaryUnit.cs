@@ -18,7 +18,6 @@ namespace nsMilitary
         public int _engine;
         public int _maneuver;
         public int _radar;
-        public int _startPosition;
         public int _stealth;
         public int _supply;
         //public List<int> _availableWeapons = new List<int>();
@@ -59,7 +58,7 @@ namespace nsMilitary
 
         public int Radar => _radar;
 
-        public int StartPosition => _startPosition;
+        public int StartPosition => MilitaryManager.Instance.UnitClasses[UnitClass].StartPosition;
 
         public int Stealth => _stealth;
 
