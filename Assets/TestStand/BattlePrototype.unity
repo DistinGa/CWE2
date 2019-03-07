@@ -2411,7 +2411,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1077590965}
   m_HandleRect: {fileID: 1077590964}
   m_Direction: 2
-  m_Value: 0.9999994
+  m_Value: 0.9999996
   m_Size: 0.57539344
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -4301,7 +4301,6 @@ MonoBehaviour:
     _engine: 5
     _maneuver: 2
     _radar: 3
-    _startPosition: 2
     _stealth: 2
     _supply: 10
     _fireCost: 1
@@ -4316,7 +4315,6 @@ MonoBehaviour:
     _engine: 7
     _maneuver: 4
     _radar: 2
-    _startPosition: 1
     _stealth: 0
     _supply: 100
     _fireCost: 1
@@ -4332,7 +4330,6 @@ MonoBehaviour:
     _engine: 5
     _maneuver: 2
     _radar: 3
-    _startPosition: 2
     _stealth: 2
     _supply: 10
     _fireCost: 1
@@ -4347,7 +4344,6 @@ MonoBehaviour:
     _engine: 7
     _maneuver: 4
     _radar: 2
-    _startPosition: 1
     _stealth: 0
     _supply: 100
     _fireCost: 1

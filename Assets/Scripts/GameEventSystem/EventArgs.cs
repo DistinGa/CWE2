@@ -15,6 +15,11 @@ namespace nsEventSystem
         public int RegID, PartyID;
     }
 
+    public sealed class AttackBattleAction_EventArgs : EventArgs
+    {
+        public string Message;
+    }
+
     public sealed class EndOfCombat_EventArgs : EventArgs
     {
         public int CombatID;

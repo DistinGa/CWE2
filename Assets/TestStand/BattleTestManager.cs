@@ -87,7 +87,6 @@ public class BattleTestManager : MonoBehaviour
             _combat.AttackerUnits[i] = new CombatUnit(i, UnitID, MyArmy[i]._count, _combat.MovementValue);
 
             cuLines[_combat.AttackerUnits[i].ID] = MyLines;
-            //GameObject go = Instantiate(cuPrefab, MyLines[_combat.AttackerUnits[i].Position - 1].transform);
             GameObject go = Instantiate(cuPrefab, MyLines[MilitaryManager.Instance.UnitClasses[_combat.AttackerUnits[i].Class].StartPosition - 1].transform);
             var view = go.GetComponent<ViewCU>();
             view.cu = _combat.AttackerUnits[i];
@@ -107,11 +106,11 @@ public class BattleTestManager : MonoBehaviour
 
             cuLines[_combat.DefenderUnits[i + offset].ID] = EnemyLines;
             
-            //GameObject go = Instantiate(cuPrefab, EnemyLines[_combat.DefenderUnits[i + offset].Position - 1].transform);
             GameObject go = Instantiate(cuPrefab, EnemyLines[MilitaryManager.Instance.UnitClasses[_combat.DefenderUnits[i + offset].Class].StartPosition - 1].transform);
             var view = go.GetComponent<ViewCU>();
             view.cu = _combat.DefenderUnits[i + offset];
             view.IsEnemy = true;
+            view.Color = InitialColor;
             view.Clicked = OnClick;
             cuViews[i + offset] = view;
             UpdateView(view);
@@ -123,11 +122,13 @@ public class BattleTestManager : MonoBehaviour
     private void OnEnable()
     {
         nsEventSystem.GameEventSystem.Subscribe(nsEventSystem.GameEventSystem.MyEventsTypes.EndOfCombat, EndOfCombat);
+        nsEventSystem.GameEventSystem.Subscribe(nsEventSystem.GameEventSystem.MyEventsTypes.AttackBattleAction, PrintAttackInfo);
     }
 
     private void OnDisable()
     {
         nsEventSystem.GameEventSystem.UnSubscribe(nsEventSystem.GameEventSystem.MyEventsTypes.EndOfCombat, EndOfCombat);
+        nsEventSystem.GameEventSystem.UnSubscribe(nsEventSystem.GameEventSystem.MyEventsTypes.AttackBattleAction, PrintAttackInfo);
     }
 
     void OnClick(bool isEnemy, int cuID)
@@ -177,12 +178,13 @@ public class BattleTestManager : MonoBehaviour
 
     void UpdateView(int cuID)
     {
+        // Перемещение группы
         if (cuViews[cuID].transform != cuLines[cuID][cuViews[cuID].cu.Position - 1].transform)
             cuViews[cuID].transform.SetParent(cuLines[cuID][cuViews[cuID].cu.Position - 1].transform);
 
         if (cuViews[cuID].cu.ActionSelected)
             cuViews[cuID].Color = InitialColor;
-        else
+        else if(!cuViews[cuID].IsEnemy)
             cuViews[cuID].Color = ActiveUnitColor;
 
         cuViews[cuID].UpdateData();
@@ -379,5 +381,11 @@ public class BattleTestManager : MonoBehaviour
             goWinScreen.SetActive(true);
         else
             goLooseScreen.SetActive(true);
+    }
+
+    void PrintAttackInfo(object sender, EventArgs e)
+    {
+        string msg = (e as nsEventSystem.AttackBattleAction_EventArgs).Message;
+        print(msg);
     }
 }

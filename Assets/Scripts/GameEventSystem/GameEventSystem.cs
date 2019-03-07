@@ -27,6 +27,7 @@ namespace nsEventSystem
             public static readonly EventTypeClass ProduceNewMilitaryUnit = new EventTypeClass(); //Постройка нового юнита (ProduceNewUnits_EventArgs)
             public static readonly EventTypeClass AbortPartyLawInRegion = new EventTypeClass(); //Отмена принятия закона оппозицией или игроком.
             public static readonly EventTypeClass EndOfCombat = new EventTypeClass(); //Окончание боя.
+            public static readonly EventTypeClass AttackBattleAction = new EventTypeClass();    //Атака в бою.
 
             //События с сылочными параметрами (не используются при сериализации)
         }

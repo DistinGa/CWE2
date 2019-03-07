@@ -113,7 +113,10 @@ namespace nsCombat
             int DamageAmount = Attacker.GetDamageAmount(Target, AttackerWeaponID);
 
             if (DamageAmount > 0)
+            {
                 Target.TakeDamage(DamageAmount);
+                GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.AttackBattleAction, new AttackBattleAction_EventArgs() { Message = $"{Attacker.Name} -> {Target.Name} -{DamageAmount} HP"});
+            }
         }
 
         public CombatUnit GetCombatUnit(CombatData combatData, bool Attacker, int CombatUnitID)
