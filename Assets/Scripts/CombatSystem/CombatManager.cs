@@ -283,7 +283,7 @@ namespace nsCombat
                         if (attackerUnit.MovementCnt <= 0)
                         {
                             MoveBackward(combatData, attackerUnit);
-                            return;
+                            continue;
                         }
                     }
 
@@ -291,7 +291,7 @@ namespace nsCombat
                     if (attackerUnit.Supply < attackerUnit.Unit.GetFireCost(attackerUnit.Unit.AvailableWeapons[0]))
                     {
                         attackerUnit.Resupply();
-                        return;
+                        continue;
                     }
 
                     //Атака
