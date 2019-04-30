@@ -7,14 +7,14 @@ namespace nsMilitary
     {
         public string UnitName { get; private set; }
         public int Authority { get; set; }
-        public int UnitType { get; set; }    //Land / Sea / Air
+        public UnitType UnitType { get; set; }    //Land / Sea / Air
         public int UnitClass { get; set; }   //Helicopter / Tank / Submarine ...
         public int Body;
         public List<int> Weapon, Reliability, Electronics;    //Установленные системы
 
         private Dictionary<int, SystemWeapon> _weaponSystems;
 
-        public MilitaryUnit(int authority, int unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
+        public MilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
         {
             Authority = authority;
             UnitType = unitType;
@@ -385,8 +385,20 @@ namespace nsMilitary
     [System.Serializable]
     public class UnitClass
     {
-        public string Name;
+        public string NameID;
         public int ClassID;
         public int StartPosition;   //Начальное положение на поле боя (клетка, начиная от центра)
+
+        public string Name
+        {
+            get { return Assets.SimpleLocalization.LocalizationManager.Localize(NameID); }
+        }
+    }
+
+    public enum UnitType
+    {
+        Sea,
+        Ground,
+        Air
     }
 }

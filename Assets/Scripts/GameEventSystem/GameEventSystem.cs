@@ -28,6 +28,10 @@ namespace nsEventSystem
             public static readonly EventTypeClass AbortPartyLawInRegion = new EventTypeClass(); //Отмена принятия закона оппозицией или игроком.
             public static readonly EventTypeClass EndOfCombat = new EventTypeClass(); //Окончание боя.
             public static readonly EventTypeClass AttackBattleAction = new EventTypeClass();    //Атака в бою.
+            public static readonly EventTypeClass AddUnitsToWar = new EventTypeClass();    //Добавление юнитов в пул войны.
+            public static readonly EventTypeClass AddNews = new EventTypeClass();    //Добавление новости.
+            public static readonly EventTypeClass ChangeAuthority = new EventTypeClass();    //Смена политического режима.
+            public static readonly EventTypeClass AddProsperity = new EventTypeClass();    //Изменение уровня благосостояния.
 
             //События с сылочными параметрами (не используются при сериализации)
         }

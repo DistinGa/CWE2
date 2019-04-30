@@ -87,7 +87,7 @@ public class BattleTestManager : MonoBehaviour
             _combat.AttackerUnits[i] = new CombatUnit(i, UnitID, MyArmy[i]._count, _combat.MovementValue);
 
             cuLines[_combat.AttackerUnits[i].ID] = MyLines;
-            GameObject go = Instantiate(cuPrefab, MyLines[MilitaryManager.Instance.UnitClasses[_combat.AttackerUnits[i].Class].StartPosition - 1].transform);
+            GameObject go = Instantiate(cuPrefab, MyLines[MilitaryManager.Instance.UnitClasses[_combat.AttackerUnits[i].ClassID].StartPosition - 1].transform);
             var view = go.GetComponent<ViewCU>();
             view.cu = _combat.AttackerUnits[i];
             view.IsEnemy = false;
@@ -106,7 +106,7 @@ public class BattleTestManager : MonoBehaviour
 
             cuLines[_combat.DefenderUnits[i + offset].ID] = EnemyLines;
             
-            GameObject go = Instantiate(cuPrefab, EnemyLines[MilitaryManager.Instance.UnitClasses[_combat.DefenderUnits[i + offset].Class].StartPosition - 1].transform);
+            GameObject go = Instantiate(cuPrefab, EnemyLines[MilitaryManager.Instance.UnitClasses[_combat.DefenderUnits[i + offset].ClassID].StartPosition - 1].transform);
             var view = go.GetComponent<ViewCU>();
             view.cu = _combat.DefenderUnits[i + offset];
             view.IsEnemy = true;

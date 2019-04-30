@@ -25,4 +25,32 @@ namespace nsEventSystem
         public int CombatID;
         public int WinnerRegID; // Победивший в бою регион
     }
+
+    public sealed class AddUnitsToWar_EventArgs : EventArgs
+    {
+        public int WarID;
+        public bool ForAttacker; // Войска для агрессора
+        public int MilUnitID;
+        public int BaseID;   // Откуда войска (-1 - домашний пул; -11 - морской пул; >= 0 - военная база);
+        public int Amount;
+    }
+
+    public sealed class AddNews_EventArgs : EventArgs
+    {
+        public int RegionID;    // Место действия
+        public int InitTurn;    // Ход, в который произошло событие
+        public string TextID;   // Ключ текста локализации
+    }
+
+    public sealed class ChangeAuthority_EventArgs : EventArgs
+    {
+        public int RegionID;
+        public int NewAuthorityID;
+    }
+
+    public sealed class AddIntPropertyInRegion_EventArgs : EventArgs
+    {
+        public int RegionID;
+        public int Amount;
+    }
 }

@@ -97,6 +97,35 @@ namespace nsMilitary
             return _MilitaryManagerData.ElectronicsSystems[_ID];
         }
 
+        public float GetUnitFirepower(int militaryUnitID)
+        {
+            return GetUnitFirepower(GetMilitaryUnit(militaryUnitID));
+        }
+
+        public float GetUnitFirepower(IMilitaryUnit militaryUnit)
+        {
+            float _res = 0;
+            int fc = 0;
+
+            foreach (var item in militaryUnit.AvailableWeapons)
+            {
+                _res += 0.7f * militaryUnit.GetHitPoints(item);
+                _res += 0.3f * militaryUnit.GetRange(item);
+                fc += militaryUnit.GetFireCost(item);
+            }
+
+            _res = 0.35f * _res * militaryUnit.Supply / fc; // Количество выстрелов умноженное на огневую мощь (_res - кол-во выстрелов).
+
+            _res += 0.1f * militaryUnit.Maneuver;
+            _res += 0.07f * militaryUnit.Countermeasures;
+            _res += 0.25f * militaryUnit.Armor;
+            _res += 0.1f * militaryUnit.Radar;
+            _res += 0.09f * militaryUnit.Stealth;
+            _res += 0.04f * militaryUnit.Engine;
+
+            return _res;
+        }
+
         public int NewMilitaryUnit(IMilitaryUnit militaryUnit)
         {
             int maxKey = _MilitaryManagerData.MilitaryUnits.Count == 0? 0: _MilitaryManagerData.MilitaryUnits.Keys.Max() + 1;
@@ -104,7 +133,7 @@ namespace nsMilitary
             return maxKey;
         }
 
-        public int NewMilitaryUnit(int authority, int unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
+        public int NewMilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
         {
             return NewMilitaryUnit(new MilitaryUnit(authority, unitType, unitClass, unitName, body, weapon, reliability, electronics));
         }
@@ -264,7 +293,7 @@ namespace nsMilitary
 
             if (region.MilitaryBaseID < 0)
             {
-                _MilitaryManagerData.MilBases.Add(new MilitaryBase(RegID, AuthID, ModEditor.ModProperties.Instance.DefaultMilBaseCapacity));
+                _MilitaryManagerData.MilBases.Add(RegID, new MilitaryBase(RegID, AuthID, ModEditor.ModProperties.Instance.DefaultMilBaseCapacity));
                 region.RegisterMilBase(_MilitaryManagerData.MilBases.Count - 1);
             }
         }
@@ -286,20 +315,20 @@ namespace nsMilitary
 
     public class MilitaryManager_Ds:ISavable
     {
-        public List<MilitaryBase> MilBases;
+        public Dictionary<int, MilitaryBase> MilBases;
         public Dictionary<int, IMilitaryUnit> MilitaryUnits; //Список всех существующих юнитов в игре
         public Dictionary<int, SystemBody> BodySystems; //Список всех существующих SystemBody в игре
         public Dictionary<int, SystemWeapon> WeaponSystems; //Список всех существующих SystemWeapon в игре
         public Dictionary<int, SystemReliability> ReliabilitySystems; //Список всех существующих SystemReliability в игре
         public Dictionary<int, SystemElectronics> ElectronicsSystems; //Список всех существующих SystemElectronics в игре
         public List<UnitOnTheWay> MilitaryUnitsOnTheWay; //Юниты в процессе перемещения
-        public List<MilitaryPool> MainPools;    //Основные военные пулы контролируемых стран (индекс - индекс региона)
+        public Dictionary<int, MilitaryPool> MainPools;    //Домашние пулы (индекс - индекс региона)
         public List<SeaPool> _SeaPools;
 
         public MilitaryManager_Ds()
         {
             MilitaryUnits = new Dictionary<int, IMilitaryUnit>();
-            MilBases = new List<MilitaryBase>();
+            MilBases = new Dictionary<int, MilitaryBase>();
             _SeaPools = new List<SeaPool>();
         }
 

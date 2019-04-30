@@ -6,7 +6,7 @@ namespace nsMilitary
     {
         string UnitName { get; }
         int Authority { get; }
-        int UnitType { get; }    //Land / Sea / Air
+        UnitType UnitType { get; }    //Land / Sea / Air
         int UnitClass { get; }   //Helicopter / Tank / Submarine ...
         int Armor { get; }
         int Capacity { get; }

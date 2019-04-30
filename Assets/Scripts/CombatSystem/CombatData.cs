@@ -10,7 +10,7 @@ namespace nsCombat
     /// <summary>
     /// Класс, представляющий бой.
     /// </summary>
-    public class CombatData
+    public class CombatData: ISavable
     {
         public bool Active;
         public Dictionary<int, CombatUnit> AttackerUnits, DefenderUnits;
@@ -21,5 +21,7 @@ namespace nsCombat
         public int CombatArea;    //Размер поля боя(количество линий для каждой стороны)
         public int CenterCombatArea;    //Размер центральной облати (количество линий для каждой стороны)
         public int MovementValue;
+        public int ReliefPropertiesID;
+        public bool SeaAccess = true, GroundAccess = true, AirAccess = true; //Доступность воздуха, земли, моря в зелёной зоне для боевых действий.
     }
 }

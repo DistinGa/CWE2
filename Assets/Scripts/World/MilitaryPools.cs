@@ -7,6 +7,8 @@ namespace nsMilitary
 {
     public class MilitaryPool
     {
+        public bool Active;
+        protected int _Capacity;
         protected Dictionary<int, int> _MilForces;  //Key - MilitaryUnit ID; Value - amount
 
         public MilitaryPool()
@@ -42,6 +44,38 @@ namespace nsMilitary
                 _MilForces[UnitID] += Amount;
             else
                 _MilForces.Add(UnitID, Amount);
+
+            if (Amount < 0)
+            {
+                if(_MilForces[UnitID] == 0)
+                    _MilForces.Remove(UnitID);
+
+                if (_MilForces[UnitID] < 0)
+                    throw new Exception("Subtract too many units from pool.");
+            }
+        }
+
+        //Вместимость базы (морского пула для сухопутных юнитов)
+        public int Capacity
+        {
+            get { return _Capacity; }
+        }
+
+        //Свободное место на базе (d морском пуле для сухопутных юнитов)
+        public int FreeCapacity
+        {
+            get
+            {
+                if (Active)
+                    return Capacity - GetUnitsAmount();
+                else
+                    return 0;
+            }
+        }
+
+        public void AddCapacity(int Amount)
+        {
+            _Capacity += Amount;
         }
     }
 
@@ -74,27 +108,10 @@ namespace nsMilitary
             _MilForces = new Dictionary<int, int>();
         }
 
-        //Вместимость базы
-        public int Capacity
-        {
-            get { return _Capacity; }
-        }
-
-        //Свободное место на базе
-        public int FreeCapacity
-        {
-            get { return Capacity - GetUnitsAmount(); }
-        }
-
         public int AuthID
         {
             set { _AuthID = value; }
             get { return _AuthID; }
-        }
-
-        public void AddCapacity(int Amount)
-        {
-            _Capacity += Amount;
         }
     }
 

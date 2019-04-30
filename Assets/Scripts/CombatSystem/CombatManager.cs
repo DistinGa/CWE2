@@ -17,7 +17,7 @@ namespace nsCombat
             new CombatManager();
         }
 
-        public CombatManager()
+        private CombatManager()
         {
             Instance = this;
 
@@ -74,11 +74,6 @@ namespace nsCombat
                 Active = true,
                 RegID = RegID,
                 AttackerRegID = AttackerRegID,
-                AttackerMoral = nsWorld.World.TheWorld.GetRegion(AttackerRegID).Moral,
-                DefenderMoral = nsWorld.World.TheWorld.GetRegion(RegID).Moral,
-                //Позже прописать определение штрафа от проигрыша на фазе войны
-                AttackerMoralPenalty = ModEditor.ModProperties.Instance.AggressorMoralPenalty,
-                DefenderMoralPenalty = 0,
                 CombatArea = ModEditor.ModProperties.Instance.CombatArea,
                 CenterCombatArea = ModEditor.ModProperties.Instance.CenterCombatArea,
                 MovementValue = nsWorld.World.TheWorld.GetRegion(RegID).MovementValue
@@ -145,20 +140,23 @@ namespace nsCombat
         }
 
         /// <summary>
-        /// Движение к центру
+        /// Движение к противнику
         /// </summary>
-        /// <param name="Attacker"></param>
-        /// <param name="CombatUnitID"></param>
         public void MoveForward(CombatData combatData, CombatUnit CU)
         {
-            if (CU.Position > 1) CU.Move(-1);
+            int _nearestPos = -(combatData.CombatArea - 1); // При пересечении центра первая клетка на вражеской территории имеет индекс 0.
+
+            if (CU.Unit.UnitType == UnitType.Sea && !combatData.SeaAccess
+                    || CU.Unit.UnitType == UnitType.Ground && !combatData.GroundAccess
+                    || CU.Unit.UnitType == UnitType.Air && !combatData.AirAccess)
+                _nearestPos = combatData.CenterCombatArea + 1;
+
+            if (CU.Position > _nearestPos) CU.Move(-1);
         }
 
         /// <summary>
-        /// Движение от центра
+        /// Движение от противника
         /// </summary>
-        /// <param name="Attacker"></param>
-        /// <param name="CombatUnitID"></param>
         public void MoveBackward(CombatData combatData, CombatUnit CU)
         {
             if (CU.Position < combatData.CombatArea) CU.Move(1);
@@ -168,7 +166,7 @@ namespace nsCombat
         /// Добавление группы юнитов на поле боя (или юнитов в существующую группу)
         /// </summary>
         /// <param name="Attacker">За какую сторону будут воевать юниты (за агрессора или за защищающегося)</param>
-        /// <param name="UnitID"></param>
+        /// <param name="UnitID">MilitaryUnitID в MilitaryManager_Ds.MilitaryUnits</param>
         /// <param name="Amount"></param>
         public void AddCombatUnits(CombatData combatData, bool Attacker, int UnitID, int Amount, int HomeBaseID)
         {
@@ -178,14 +176,14 @@ namespace nsCombat
             else
                 CUList = combatData.DefenderUnits;
 
-            CombatUnit cu = CUList.Values.First(u => u.UnitID == UnitID);
+            CombatUnit cu = CUList.Values.First(u => u.UnitID == UnitID &&  u.HomeBaseID == HomeBaseID);
             //Если группа с такими юнитами находится на краю поля боя, добавляем юниты в неё
-            if (cu != null && cu.Position == combatData.CombatArea && cu.HomeBaseID == HomeBaseID)
+            if (cu != null && cu.Position == combatData.CombatArea)
                 cu.Amount += Amount;
             else
             {
                 //Иначе создаём новую
-                cu = new CombatUnit(CUList.Keys.Max() + 1, UnitID, Amount, combatData.MovementValue, HomeBaseID);
+                cu = new CombatUnit(CUList.Keys.Max() + 1, UnitID, Amount, combatData.MovementValue, HomeBaseID, combatData.ReliefPropertiesID, Attacker);
                 cu.Position = combatData.CombatArea;
                 CUList.Add(cu.ID, cu);
             }
@@ -209,7 +207,7 @@ namespace nsCombat
                 Opponents = combatData.AttackerUnits.Values.ToList();
             }
 
-            if (RegID == combatData.AttackerRegID)
+            if (RegID == combatData.AttackerRegID && combatData.RegID != combatData.AttackerRegID)
             {
                 MyUnits = combatData.AttackerUnits.Values.ToList();
                 Opponents = combatData.DefenderUnits.Values.ToList();
@@ -238,6 +236,11 @@ namespace nsCombat
             }
         }
 
+        /// <summary>
+        /// Автоматический ход. Неконтролируемые регионы управляют всеми группами юнитов, контролируемые - теми, которым игрок не отдал приказ.
+        /// </summary>
+        /// <param name="combatData"></param>
+        /// <param name="RegID">Регион, который выполняет свой ход</param>
         public void CommonTurn(CombatData combatData, int RegID)
         {
             List<CombatUnit> MyUnits = new List<CombatUnit>();
@@ -258,18 +261,14 @@ namespace nsCombat
             else
             {
                 GetUnits(combatData, RegID, out MyUnits, out Opponents);
-                if (combatData.RegID != RegID && combatData.AttackerRegID != RegID)
-                    return;
+                // Не понятно, зачем такая проверка. (Если юниты направлены на помощь, такая проверка не пройдёт.)
+                //if (combatData.RegID != RegID && combatData.AttackerRegID != RegID)
+                //    return;
 
                 CommonTurn(combatData, MyUnits, Opponents);
             }
         }
 
-        /// <summary>
-        /// Автоматический ход. Неконтролируемые регионы управляют всеми группами юнитов, контролируемые - теми, которым игрок не отдал приказ.
-        /// </summary>
-        /// <param name="combatData"></param>
-        /// <param name="RegID">Регион, который выполняет свой ход</param>
         private void CommonTurn(CombatData combatData, List<CombatUnit> MyUnits, List<CombatUnit> Opponents)
         {
             foreach (CombatUnit attackerUnit in MyUnits)
@@ -374,33 +373,20 @@ namespace nsCombat
         }
 
         /// <summary>
-        /// Возвращение войск "домой"
+        /// Возвращение войск в пул войны.
         /// </summary>
-        /// <param name="CUList"></param>
-        void ReturnMilUnits(List<CombatUnit> CUList)
+        void ReturnMilUnits(int regID, bool attacker, List<CombatUnit> CUList)
         {
-            int BaseID = -1;
             foreach (var item in CUList)
             {
-                //Юниты нейтральной страны никуда не возвращаются, т.к. и не перемещаются, а значит они и так дома :)
-                if (item.Unit.Authority > -1)
-                {
-                    if (item.Amount > 0)
-                    {
-                        if (item.HomeBaseID == -1)
-                        {
-                            //Домашний пул
-                            BaseID = nsWorld.World.TheWorld.GetRegionController(item.Unit.Authority).HomelandID;
-                            MilitaryManager.Instance.SendMilitaryUnits(item.Unit.Authority, DestinationTypes.War, 0, DestinationTypes.MainPool, BaseID, item.UnitID, item.Amount);
-                        }
-                        else
-                        {
-                            //Военная база
-                            BaseID = item.HomeBaseID;
-                            MilitaryManager.Instance.SendMilitaryUnits(item.Unit.Authority, DestinationTypes.War, 0, DestinationTypes.MilitaryBase, BaseID, item.UnitID, item.Amount);
-                        }
-                    }
-                }
+                AddUnitsToWar_EventArgs e = new AddUnitsToWar_EventArgs();
+                e.WarID = regID;
+                e.ForAttacker = attacker;
+                e.MilUnitID = item.UnitID;
+                e.BaseID = item.HomeBaseID;
+                e.Amount = item.Amount;
+
+                GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.AddUnitsToWar, e);
             }
         }
 
@@ -411,9 +397,6 @@ namespace nsCombat
             {
                 if (!combatData.Active)
                     return;
-
-                combatData.AttackerMoral -= combatData.AttackerMoralPenalty;
-                combatData.DefenderMoral -= combatData.DefenderMoralPenalty;
 
                 List<int> _tmpList = new List<int>();
                 foreach (CombatUnit item in combatData.AttackerUnits.Values.ToList())
@@ -463,14 +446,14 @@ namespace nsCombat
             int combatID = (e as EndOfCombat_EventArgs).CombatID;
             CombatData combatData = Combats[combatID];
 
-            ////Возвращение войск "домой"
-            //ReturnMilUnits(combatData.AttackerUnits.Values.ToList());
-            //ReturnMilUnits(combatData.DefenderUnits.Values.ToList());
+            combatData.Active = false;
+
+            //Возвращение войск в пул войны
+            ReturnMilUnits(combatData.RegID, true, combatData.AttackerUnits.Values.ToList());
+            ReturnMilUnits(combatData.RegID, false, combatData.DefenderUnits.Values.ToList());
 
             combatData.AttackerUnits.Clear();
             combatData.DefenderUnits.Clear();
-
-            combatData.Active = false;
 
             DeleteCombat(combatID);
         }

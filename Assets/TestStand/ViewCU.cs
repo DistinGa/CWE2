@@ -39,7 +39,7 @@ public class ViewCU : MonoBehaviour
 
     private void Start()
     {
-        txtClass.text = nsMilitary.MilitaryManager.Instance.UnitClasses[cu.Class].Name;
+        txtClass.text = nsMilitary.MilitaryManager.Instance.UnitClasses[cu.ClassID].Name;
     }
 
     private void OnDisable()

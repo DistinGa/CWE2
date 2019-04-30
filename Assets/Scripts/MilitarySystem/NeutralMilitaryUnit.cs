@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Assets.SimpleLocalization;
 
 namespace nsMilitary
 {
@@ -9,7 +10,7 @@ namespace nsMilitary
         int _authority;
         public int _count;
         public string _name;
-        int _unitType;
+        UnitType _unitType;
         public int _unitClass;
         public int _armor;
         int _capacity;
@@ -30,7 +31,7 @@ namespace nsMilitary
         {
             get
             {
-                return _name;
+                return LocalizationManager.Localize(_name);
             }
         }
 
@@ -40,7 +41,7 @@ namespace nsMilitary
             set { _authority = value; }
         }
 
-        public int UnitType => _unitType;
+        public UnitType UnitType => _unitType;
 
         public int UnitClass => _unitClass;
 

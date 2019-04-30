@@ -19,7 +19,7 @@ namespace Assets.SimpleLocalization
         private static readonly Dictionary<string, Dictionary<string, string>> Dictionary = new Dictionary<string, Dictionary<string, string>>();
         //private static string _language = "English";
         private static string _language;
-        private static string DefaultLanguage;
+        private static string DefaultLanguage = "";
 
 		/// <summary>
 		/// Get or set language.
@@ -96,9 +96,13 @@ namespace Assets.SimpleLocalization
             {
                 Read();
             }
-
-            if (!Dictionary.ContainsKey(Language)) throw new KeyNotFoundException("Language not found: " + Language);
-            if (!Dictionary[Language].ContainsKey(localizationKey)) throw new KeyNotFoundException("Translation not found: " + localizationKey);
+            
+            if (!Dictionary.ContainsKey(Language))
+                //throw new KeyNotFoundException("Language not found: " + Language);
+                return localizationKey; // на этапе тестирования
+            if (!Dictionary[Language].ContainsKey(localizationKey))
+                //throw new KeyNotFoundException("Translation not found: " + localizationKey);
+                return localizationKey; // на этапе тестирования
 
             string res = Dictionary[Language][localizationKey];
             //Если нет перевода для данной фразы, берём фразу на дефолтном языке

@@ -48,20 +48,25 @@ namespace ModEditor
         //Парламент
         public List<PoliticParty_Props> PoliticParties = new List<PoliticParty_Props>();  //Список разновидностей политических партий (во всех регионах такой набор партий)
         //public List<PoliticLaw_Props> PoliticLaws;        //Список всех возможных в игре законов
-        public float AnnualPartyPopularityGain;    //Ежегодный прирост популярности партии (в неконтролируемом регионе меняется раз в год, в контролируемом - каждый ход на кратное (1/48) значение)
+        public float AnnualPartyPopularityGain;    //Ежегодный прирост популярности партии (в неконтролируемом регионе меняется раз в год, в контролируемом - каждый ход на кратное (1/48) значение) (1 - 100)
+        public float AnnualRadicalsPopularityGain;    //Ежегодный прирост популярности групп радикалов (1 - 100)
         public float RelativeNatFundToPartyGrow;    //Долг в нац фонде, который считается за 100% при расчёте скорости роста партии, зависящей от него
         public int PassingLawTime1;                 //Время принятия закона лидирующей партией (ходы)
         public int PassingLawTime2;                 //Время принятия закона второй лидирующей партией (ходы)
         public int PassingLawTime_;                 //Время принятия закона остальными партиями (ходы)
 
         //Military
-        public List<nsMilitary.UnitClass> UnitClasses;
+        public List<nsMilitary.UnitClass> UnitClasses;  //Классы юнитов (танк, истребитель, пехота и тд.)
 
         //Combat
+        public LocalizedDictionary<nsCombat.WarPhase> WarPhasesNames;   // Названия фаз войны
+        public Dictionary<int, nsCombat.ReliefProperties> ReliefProperties; // Список всех особенностей рельефа
+        public Dictionary<int, Dictionary<nsCombat.WarPhase, int>> RegPhaseReliefProperties;  //Особенности рельефа для региона и фазы войны (<RegionID, <WarPhase, ReliefPropertiesID>>)
         public int FireCost;    //Сколько Supply отнимается при выстреле
         public int CombatArea, CenterCombatArea;    //Размер поля боя, и центральная облать (количество линий для каждой стороны)
         public int AggressorMoralPenalty;           //Штраф к морали за агрессию
         public int RetreatMoralPenalty;           //Штраф к морали за проигрыш в фазе войны
+        public int NonePhaseTurns;              // Количество ходов без военных действий, после которого начинается контратака государства.
 
         private ModProperties()
         {

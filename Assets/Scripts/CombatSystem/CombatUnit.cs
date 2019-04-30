@@ -16,37 +16,63 @@ namespace nsCombat
         int _Supply;
         int _MovementValue;  // Ограничение на перемещение, накладываемые местностью (начальное значение счётчика, из которого будет вычитаться Engine)
 
+        int _ReliefPropertiesID = -1;
+        WarPhasePenalty _ClassPenalty = null;
+        bool _IsAttacker;
+
         int _Amount;
         public int ID { get; private set; }
         public int UnitID { get; private set; }
         public Dictionary<int, bool> WeaponReady { get; private set; }  //Готовность оружия к стрельбе (после выстрела сбрасывается)
         public int HomeBaseID { get; private set; }     //Из какой базы пришли юниты и куда уйдут после окончания боя (-1 - домашний пул)
 
-        public CombatUnit(int ID, int MilitaryUnitID, int Amount, int MovementValue, int HomeBaseID = -1)
+        public CombatUnit(int ID, int MilitaryUnitID, int Amount, int MovementValue, int HomeBaseID = -1, int ReliefPropertiesID = -1, bool isAttacker = true)
         {
             this.ID = ID;
             UnitID = MilitaryUnitID;
             this.HomeBaseID = HomeBaseID;
             _Amount = Amount;
-            _InitArmor = Amount * Unit.Armor;
-            _Armor = Amount * Unit.Armor;
-            Supply = Unit.Supply;
-            Position = Unit.StartPosition;
+            _Armor = Amount * Unit.Armor + ClassPenalty.Armor;
+            _InitArmor = _Armor;
+            _Supply = Unit.Supply;
+            _Position = Unit.StartPosition;
             _MovementCnt = 0;
             _ActionSelected = false;
             _MovementValue = MovementValue;
+            _ReliefPropertiesID = ReliefPropertiesID;
+            _IsAttacker = isAttacker;
 
             WeaponReady = new Dictionary<int, bool>();
             foreach (var item in Unit.AvailableWeapons)
             {
                 WeaponReady.Add(item, true);
             }
+
         }
 
         #region Properties
+        private WarPhasePenalty ClassPenalty
+        {
+            get
+            {
+                if (_ClassPenalty == null)
+                {
+                    _ClassPenalty = new WarPhasePenalty();
+
+                    if (_ReliefPropertiesID > -1)
+                    {
+                        if (ModEditor.ModProperties.Instance.ReliefProperties.ContainsKey(_ReliefPropertiesID))
+                            _ClassPenalty = ModEditor.ModProperties.Instance.ReliefProperties[_ReliefPropertiesID].GetClassPenalties(ClassID, _IsAttacker);
+                    }
+                }
+
+                return _ClassPenalty;
+            }
+        }
+
         public int RestArmorPercent
         {
-            get { return (int)(_Armor * 100f / _InitArmor); }
+            get { return (int)(Armor * 100f / _InitArmor); }
         }
 
         public IMilitaryUnit Unit
@@ -65,7 +91,7 @@ namespace nsCombat
             get { return Unit.UnitName; }
         }
 
-        public int Class
+        public int ClassID
         {
             get { return Unit.UnitClass; }
         }
@@ -115,27 +141,27 @@ namespace nsCombat
 
         public int Stealth
         {
-            get { return Unit.Stealth; }
+            get { return Unit.Stealth + ClassPenalty.Stealth; }
         }
 
         public int Maneuver
         {
-            get { return Unit.Maneuver; }
+            get { return Unit.Maneuver + ClassPenalty.Maneuver; }
         }
 
         public int Engine
         {
-            get { return Unit.Engine; }
+            get { return Unit.Engine + ClassPenalty.Engine; }
         }
 
         public int Countermeasures
         {
-            get { return Unit.Countermeasures; }
+            get { return Unit.Countermeasures + ClassPenalty.Countermeasures; }
         }
 
         public int Radar
         {
-            get { return Unit.Radar; }
+            get { return Unit.Radar + ClassPenalty.Radar; }
         }
 
         /// <summary>
@@ -155,7 +181,7 @@ namespace nsCombat
 
         public int GetHitpoints(int WeaponID)
         {
-            return Unit.GetHitPoints(WeaponID);
+            return Unit.GetHitPoints(WeaponID) + ClassPenalty.GetHitPoints(WeaponID);
         }
 
         public void Fire(int WeaponID)
@@ -211,7 +237,7 @@ namespace nsCombat
         /// <param name="WeaponID"></param>
         public List<CombatUnit> GetTargets(List<CombatUnit> Opponents, int WeaponID)
         {
-            return Opponents.Where((op) => GetTargetClasses(WeaponID).Contains(op.Class)).ToList();
+            return Opponents.Where((op) => GetTargetClasses(WeaponID).Contains(op.ClassID)).ToList();
         }
 
         /// <summary>
@@ -237,7 +263,7 @@ namespace nsCombat
         {
             CombatUnit Attacker = this;
             // Сначала проверим операционную доступность цели.
-            if (Attacker.GetTargetClasses(AttackerWeaponID).Contains(Defender.Class))
+            if (Attacker.GetTargetClasses(AttackerWeaponID).Contains(Defender.ClassID))
             {
                 if (!InOperationalRange(Defender, AttackerWeaponID))
                     return 0;

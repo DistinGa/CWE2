@@ -30,7 +30,7 @@ namespace ModEditor
 
         public string Name
         {
-            get { return _Name; }
+            get { return Assets.SimpleLocalization.LocalizationManager.Localize(_Name); }
         }
 
         public PoliticPartyType PartyType
@@ -76,10 +76,10 @@ namespace ModEditor
             //В неконтролируемых регионах популярность меняется случайным образом раз в год, поэтому на YEAR_TURNS_COUNT не делим.
             if (RegionController == null)
             {
-                return (new Random()).Next((int)(ModProperties.Instance.AnnualPartyPopularityGain * 100)) * 0.01f;
+                return ModProperties.Instance.AnnualPartyPopularityGain;
             }
 
-            //Для контролируемых стран
+            //Для контролируемых стран - каждый ход
             double res = 0; //double для Math.Round
 
             switch (_PartyType)

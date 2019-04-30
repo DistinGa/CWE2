@@ -25,13 +25,17 @@ namespace nsWorld
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.ChangeAuthority, OnChangeAuthority);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.AddProsperity, OnAddProsperity);
         }
 
         ~Region_Op()
         {
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
-            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.ChangeAuthority, OnChangeAuthority);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.AddProsperity, OnAddProsperity);
         }
 
         public string RegName
@@ -200,18 +204,19 @@ namespace nsWorld
 
         private void NewYear(object sender, EventArgs e)
         {
-            if (_RegController != null)  //Только для неконтролируемых регионов
+            Random rnd = new Random();
+
+            if (_RegController == null)  //Только для неконтролируемых регионов
             {
                 //Изменение GNP
                 int add = 0;
-                System.Random rnd = new System.Random();
                 if (_RegData.Authority == 0)
                 {
                     add = rnd.Next(ModEditor.ModProperties.Instance.GNP_Neutral_Min, ModEditor.ModProperties.Instance.GNP_Neutral_Max + 1);
                 }
                 else
                 {
-                    if (ProsperityLevel > 0)
+                    if (World.TheWorld.GetRegionController(_RegData.Authority).ProsperityLevel > 0)
                         add = rnd.Next(ModEditor.ModProperties.Instance.GNP_HighDevLevel_Min, ModEditor.ModProperties.Instance.GNP_HighDevLevel_Max + 1);
                     else
                         add = rnd.Next(ModEditor.ModProperties.Instance.GNP_LowDevLevel_Min, ModEditor.ModProperties.Instance.GNP_LowDevLevel_Max + 1);
@@ -220,15 +225,22 @@ namespace nsWorld
                 _RegData.GNP += add;
 
                 //Популярность партий раз в год
-                if (_RegController == null)
-                {
-                    for (int i = 0; i < ModEditor.ModProperties.Instance.PoliticParties.Count; i++)
-                    {
-                        float x = ModEditor.ModProperties.Instance.PoliticParties[i].GetPartyPopularityGain(_RegController);
-                        AddPartyPopularity(i, x);
-                    }
-                }
+                int _id = rnd.Next(ModEditor.ModProperties.Instance.PoliticParties.Count);
+                float x = ModEditor.ModProperties.Instance.PoliticParties[_id].GetPartyPopularityGain(_RegController);
+                AddPartyPopularity(_id, x);
             }
+
+            // Для всех регионов.
+            // Радикальные группы раз в год.
+            int _idr = rnd.Next(_RegData.Radicals.Count);
+            // Если попали на группу, соответствующую текущему режиму (не радикалы), меняем индекс.
+            if (_idr == Authority)
+            {
+                if (_idr == _RegData.Radicals.Count - 1)
+                    _idr -= 1;
+                else _idr += 1;
+            }
+            AddRadicalsPopularity(_idr, ModEditor.ModProperties.Instance.AnnualRadicalsPopularityGain);
         }
 
         void ParlamentProcess()
@@ -324,60 +336,67 @@ namespace nsWorld
                 actualAmount = Math.Min(amount, _RegData.Parties[partieID].Popularity);
 
             _RegData.Parties[partieID].Popularity += actualAmount;
-            actualAmount = -actualAmount;
+            actualAmount *= -1f;
 
-            //Добавленные проценты распределяем по оставшимся партиям
+            //Добавленные проценты распределяем по оставшимся партиям (actualAmount уже имеет знак нужного действия)
             while (Math.Abs(actualAmount) > float.Epsilon)
             {
+                // Сначала посчитаем, для скольки партий есть возможность добавления / отнимания популярности.
                 count = 0;
                 for (int i = 0; i < _RegData.Parties.Count; i++)
                 {
-                    if (actualAmount > 0f)
+                    var pp = _RegData.Parties[i];
+
+                    if (actualAmount < 0f)
                     {
-                        if (i != partieID && _RegData.Parties[i].Popularity > float.Epsilon)
+                        if (i != partieID && pp.Popularity > float.Epsilon)
                             count++;
                     }
                     else
                     {
-                        if (i != partieID && _RegData.Parties[i].Popularity < 100f)
+                        if (i != partieID && pp.Popularity < 100f)
                             count++;
                     }
                 }
 
+                // Добавлять / отнимать будем стараться равное количество популярности.
                 actualAmount = actualAmount / count;
 
                 for (int i = 0; i < _RegData.Parties.Count; i++)
                 {
-                    if (actualAmount > 0f)
+                    var pp = _RegData.Parties[i];
+
+                    if (actualAmount < 0f)
                     {
-                        if (i != partieID && _RegData.Parties[i].Popularity > float.Epsilon)
-                            _RegData.Parties[i].Popularity += actualAmount;
+                        if (i != partieID && pp.Popularity > float.Epsilon)
+                            pp.Popularity += actualAmount;
                     }
                     else
                     {
-                        if (i != partieID && _RegData.Parties[i].Popularity < 100f)
-                            _RegData.Parties[i].Popularity += actualAmount;
+                        if (i != partieID && pp.Popularity < 100f)
+                            pp.Popularity += actualAmount;
                     }
                 }
 
+                // Если где-то вылезли из диапазона 0 - 100, поправляем и считаем расхождение.
                 actualAmount = 0;
                 for (int i = 0; i < _RegData.Parties.Count; i++)
                 {
-                    float item = _RegData.Parties[i].Popularity;
+                    var pp = _RegData.Parties[i];
 
-                    if (item < -float.Epsilon)
+                    if (pp.Popularity < 0f)
                     {
-                        actualAmount += item;
-                        item = 0f;
+                        actualAmount += pp.Popularity;
+                        pp.Popularity = 0f;
                     }
-                    if (item > 100f)
+                    if (pp.Popularity > 100f)
                     {
-                        actualAmount += (100f - item);
-                        item = 100f;
+                        actualAmount += (100f - pp.Popularity);
+                        pp.Popularity = 100f;
                     }
                 }
 
-                //Если после распределения сумма популярностей всех партий не равна 100.
+                //Если после распределения сумма популярностей всех партий не равна 100, расчитываем расхождение и повторяем итерацию.
                 if (Math.Abs(actualAmount) < float.Epsilon)
                 {
                     foreach (var item in _RegData.Parties)
@@ -388,7 +407,90 @@ namespace nsWorld
             }
         }
 
-        public void AddInfluence(int InfID, int Amount)
+        /// <summary>
+        /// Изменение популярности указанной группы радикалов. Популярность остальных групп соответственно корректируется. (алгоритм идентичен AddPartyPopularity)
+        /// </summary>
+        /// <param name="partieID">ID группы радикалов</param>
+        /// <param name="amount">Величина изменения популярности</param>
+        public void AddRadicalsPopularity(int partieID, float amount)
+        {
+            float actualAmount;
+            int count = 0;
+
+            if (amount > 0)
+                actualAmount = Math.Min(amount, 100 - _RegData.Radicals[partieID]);
+            else
+                actualAmount = Math.Min(amount, _RegData.Radicals[partieID]);
+
+            _RegData.Radicals[partieID] += actualAmount;
+            actualAmount *= -1f;
+
+            //Добавленные проценты распределяем по оставшимся партиям (actualAmount уже имеет знак нужного действия)
+            while (Math.Abs(actualAmount) > float.Epsilon)
+            {
+                // Сначала посчитаем, для скольки партий есть возможность добавления / отнимания популярности.
+                count = 0;
+                for (int i = 0; i < _RegData.Radicals.Count; i++)
+                {
+                    var pp = _RegData.Radicals[i];
+
+                    if (actualAmount < 0f)
+                    {
+                        if (i != partieID && pp > float.Epsilon)
+                            count++;
+                    }
+                    else
+                    {
+                        if (i != partieID && pp < 100f)
+                            count++;
+                    }
+                }
+
+                // Добавлять / отнимать будем стараться равное количество популярности.
+                actualAmount = actualAmount / count;
+
+                for (int i = 0; i < _RegData.Radicals.Count; i++)
+                {
+                    if (actualAmount < 0f)
+                    {
+                        if (i != partieID && _RegData.Radicals[i] > float.Epsilon)
+                            _RegData.Radicals[i] += actualAmount;
+                    }
+                    else
+                    {
+                        if (i != partieID && _RegData.Radicals[i] < 100f)
+                            _RegData.Radicals[i] += actualAmount;
+                    }
+                }
+
+                // Если где-то вылезли из диапазона 0 - 100, поправляем и считаем расхождение.
+                actualAmount = 0;
+                for (int i = 0; i < _RegData.Radicals.Count; i++)
+                {
+                    if (_RegData.Radicals[i] < 0f)
+                    {
+                        actualAmount += _RegData.Radicals[i];
+                        _RegData.Radicals[i] = 0f;
+                    }
+                    if (_RegData.Radicals[i] > 100f)
+                    {
+                        actualAmount += (100f - _RegData.Radicals[i]);
+                        _RegData.Radicals[i] = 100f;
+                    }
+                }
+
+                //Если после распределения сумма популярностей всех партий не равна 100, расчитываем расхождение и повторяем итерацию.
+                if (Math.Abs(actualAmount) < float.Epsilon)
+                {
+                    foreach (var item in _RegData.Radicals)
+                        actualAmount += item;
+
+                    actualAmount = 100 - actualAmount;
+                }
+            }
+        }
+
+        public void AddInfluence(int InfID, float Amount)
         {
             if (Amount > 0)
                 Amount = Math.Min(Amount, 100 - _RegData.Influence[InfID]);
@@ -557,10 +659,45 @@ namespace nsWorld
             _RegData.MilBaseID = BaseID;
         }
 
-        public int GetInfluence(int AuthID)
+        public float GetInfluence(int AuthID)
         {
             return _RegData.Influence[AuthID];
         }
+
+        /// <summary>
+        /// Смена режима.
+        /// </summary>
+        /// <param name="newAuthority"></param>
+        void ChangeAuthority(int newAuthority)
+        {
+            // Смена радикальных групп.
+            _RegData.Radicals[_RegData.Authority] = _RegData.Radicals[newAuthority];
+            _RegData.Radicals[newAuthority] = 0;
+
+            _RegData.Authority = newAuthority;
+        }
+
+        #region Events
+        void OnChangeAuthority(object sender, EventArgs e)
+        {
+            ChangeAuthority_EventArgs _args = e as ChangeAuthority_EventArgs;
+
+            if (_args.RegionID == _RegID)
+            {
+                ChangeAuthority(_args.NewAuthorityID);
+            }
+        }
+
+        void OnAddProsperity(object sender, EventArgs e)
+        {
+            AddIntPropertyInRegion_EventArgs _args = e as AddIntPropertyInRegion_EventArgs;
+
+            if (_args.RegionID == _RegID)
+            {
+                AddProsperity(_args.Amount);
+            }
+        }
+        #endregion
     }
 
     public class Region_Ds: ISavable
@@ -568,7 +705,7 @@ namespace nsWorld
         public int MilBaseID = -1;
         public int Score;
         public int Authority;
-        public List<int> Influence, Radicals;
+        public List<float> Influence, Radicals;
         public int GNP;
         public List<int> GNPhistory;
         public int ProsperityLevel; //+-ProspMaxValue
