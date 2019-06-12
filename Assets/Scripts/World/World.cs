@@ -83,6 +83,34 @@ namespace nsWorld
                 return _WorldData.EmbassiesList;
             }
         }
+
+        // Определение максимальной Military Generation, изученной хотя бы двумя контролируемыми регионами.
+        // (Нужно для определения, какие юниты строить в неконтролируемых регионах.)
+        public int MaxMilitaryGeneration
+        {
+            get
+            {
+                int res = 0;
+
+                SortedList<int, int> _MilGenCounter = new SortedList<int, int>();
+
+                foreach (var item in _RegionControllers)
+                {
+                    if (!_MilGenCounter.ContainsKey(item.TechMilitary))
+                        _MilGenCounter[item.TechMilitary] = 1;
+                    else
+                        _MilGenCounter[item.TechMilitary]++;
+                }
+
+                foreach (var item in _MilGenCounter)
+                {
+                    if (item.Value >= 2)
+                        res = item.Key;
+                }
+
+                return res;
+            }
+        }
         #endregion
 
         private void LoadRegions()
@@ -107,6 +135,7 @@ namespace nsWorld
         {
             return _RegionControllers[AuthorityID];
         }
+
     }
 
 

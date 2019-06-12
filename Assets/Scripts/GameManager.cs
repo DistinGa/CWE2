@@ -6,10 +6,12 @@ using nsEventSystem;
 using nsWorld;
 using nsMilitary;
 using ModEditor;
+using nsAI;
 
 public class GameManager : MonoBehaviour {
     public static GameManager GM;
 
+    AI _AI;
     GameStates _GState;
     float _TickDuration;
     float _WaitPlayerTurnTime = 300f; //Время ожидания хода игрока (по умолчанию 5 минут)
@@ -19,6 +21,11 @@ public class GameManager : MonoBehaviour {
     {
         get { return _GState; }
         private set { _GState = value; }
+    }
+
+    public AI AI
+    {
+        get { return _AI; }
     }
 
     void Awake ()
@@ -31,6 +38,7 @@ public class GameManager : MonoBehaviour {
 
         GM = this;
 
+        _AI = new AI();
         GameState = GameStates.Initial;
         Assets.SimpleLocalization.LocalizationManager.Read();
 

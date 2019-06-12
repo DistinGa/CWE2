@@ -5,13 +5,36 @@ using System.Collections.Generic;
 namespace nsEventSystem
 {
     //Класс-болванка используется для определения типа события. Класс - чтобы легче было искать в коде подписки и вызовы событий.
-    public class EventTypeClass{}
+    public class EventTypeClass
+    {
+        public string StringEventType { get; set; }
+
+        //public EventTypeClass(string strEventType)
+        //{
+
+        //}
+    }
 
     public static class GameEventSystem
     {
         //Класс используется для хранения объектных ключей словаря EventAggregator
         internal static class MyEventsTypes
         {
+            private static Dictionary<string, EventTypeClass> EventTypesDictionary = new Dictionary<string, EventTypeClass>();  //Возможность для задания событий строками (в целях сериализации)
+
+            public static void AddToEventTypesDictionary(string EventName, EventTypeClass EventType)
+            {
+                EventTypesDictionary[EventName] = EventType;
+            }
+
+            public static EventTypeClass GetFromEventTypesDictionary(string EventName)
+            {
+                if (!EventTypesDictionary.ContainsKey(EventName))
+                    throw (new Exception("Event name is not exist in the EventTypesDictionary."));
+
+                return EventTypesDictionary[EventName];
+            }
+
             //События без параметров
             public static readonly EventTypeClass TurnActions = new EventTypeClass();   //Действия хода
             public static readonly EventTypeClass TurnResults = new EventTypeClass();   //Проверка результатов хода (вызывается после TurnActions)
@@ -42,15 +65,8 @@ namespace nsEventSystem
 
         }
 
-        private static Dictionary<string, EventTypeClass> EventTypesDictionary = new Dictionary<string, EventTypeClass>();  //Возможность для задания событий строками (в целях сериализации)
-
         private static Dictionary<object, EventHandler> EventAggregator = new Dictionary<object, EventHandler>();
         private static Dictionary<object, List<Func<EventArgs, int>>> CalcEventAggregator = new Dictionary<object, List<Func<EventArgs, int>>>();
-
-        public static void AddToEventTypesDictionary(string EventName, EventTypeClass EventType)
-        {
-            EventTypesDictionary[EventName] = EventType;
-        }
 
         #region Common
         public static void Subscribe(EventTypeClass evType, EventHandler evHandler)
@@ -63,10 +79,7 @@ namespace nsEventSystem
 
         public static void Subscribe(string evTypeString, EventHandler evHandler)
         {
-            if (!EventTypesDictionary.ContainsKey(evTypeString))
-                throw (new Exception("Subscribing event name is not exist in the EventTypesDictionary."));
-
-            Subscribe(EventTypesDictionary[evTypeString], evHandler);
+            Subscribe(MyEventsTypes.GetFromEventTypesDictionary(evTypeString), evHandler);
         }
 
        public static void UnSubscribe(EventTypeClass evType, EventHandler evHandler)
@@ -79,10 +92,7 @@ namespace nsEventSystem
 
         public static void UnSubscribe(string evTypeString, EventHandler evHandler)
         {
-            if (!EventTypesDictionary.ContainsKey(evTypeString))
-                throw (new Exception("Unsubscribing event name is not exist in the EventTypesDictionary."));
-
-            UnSubscribe(EventTypesDictionary[evTypeString], evHandler);
+            UnSubscribe(MyEventsTypes.GetFromEventTypesDictionary(evTypeString), evHandler);
         }
 
         public static void InvokeEvents(EventTypeClass evType, object sender = null)
@@ -92,10 +102,7 @@ namespace nsEventSystem
 
         public static void InvokeEvents(string evTypeString, object sender = null)
         {
-            if (!EventTypesDictionary.ContainsKey(evTypeString))
-                throw (new Exception("Invoking event name is not exist in the EventTypesDictionary."));
-
-            InvokeEvents(EventTypesDictionary[evTypeString], sender);
+            InvokeEvents(MyEventsTypes.GetFromEventTypesDictionary(evTypeString), sender);
         }
 
         public static void InvokeEvents(EventTypeClass evType, EventArgs e, object sender = null)
@@ -108,10 +115,7 @@ namespace nsEventSystem
 
         public static void InvokeEvents(string evTypeString, EventArgs e)
         {
-            if (!EventTypesDictionary.ContainsKey(evTypeString))
-                throw (new Exception("Invoking event name is not exist in the EventTypesDictionary."));
-
-            InvokeEvents(EventTypesDictionary[evTypeString], e);
+            InvokeEvents(MyEventsTypes.GetFromEventTypesDictionary(evTypeString), e);
         }
 
         //Calculated Events
@@ -173,6 +177,7 @@ namespace nsEventSystem
             }
         }
         #endregion
+
     }
 
 }

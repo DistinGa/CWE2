@@ -116,6 +116,30 @@ public class RegionController
         }
     }
 
+    public int TechMilitary
+    {
+        get { return _RegCData.TechMilitary; }
+
+        set
+        {
+            _RegCData.TechMilitary = value;
+            if (_RegCData.TechMilitary < 0)
+                _RegCData.TechMilitary = 0;
+        }
+    }
+
+    public int TechProduction
+    {
+        get { return _RegCData.TechProduction; }
+
+        set
+        {
+            _RegCData.TechProduction = value;
+            if (_RegCData.TechProduction < 0)
+                _RegCData.TechProduction = 0;
+        }
+    }
+
     public Region_Op ControlledRegion
     {
         get { return World.TheWorld.GetRegion(HomelandID); }
@@ -383,5 +407,6 @@ public class RegionController_Ds
     public Dictionary<string, BudgetItem> BudgetItems;
     public int Corruption;   //0 - 100
     public int Inflation;    //0 - 100
-
+    public int TechMilitary;    //MilitaryGeneration
+    public int TechProduction;
 }

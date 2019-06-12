@@ -24,7 +24,7 @@ namespace nsWorld
 
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
-            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, NewYear);
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.ChangeAuthority, OnChangeAuthority);
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.AddProsperity, OnAddProsperity);
         }
@@ -33,7 +33,7 @@ namespace nsWorld
         {
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
-            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.NewYearEvents, EndOfYear);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.NewYearEvents, NewYear);
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.ChangeAuthority, OnChangeAuthority);
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.AddProsperity, OnAddProsperity);
         }
@@ -208,9 +208,9 @@ namespace nsWorld
 
             if (_RegController == null)  //Только для неконтролируемых регионов
             {
-                //Изменение GNP
+                // Изменение GNP
                 int add = 0;
-                if (_RegData.Authority == 0)
+                if (_RegData.Authority == -1)
                 {
                     add = rnd.Next(ModEditor.ModProperties.Instance.GNP_Neutral_Min, ModEditor.ModProperties.Instance.GNP_Neutral_Max + 1);
                 }
@@ -224,7 +224,9 @@ namespace nsWorld
 
                 _RegData.GNP += add;
 
-                //Популярность партий раз в год
+                // Постройка нейтральных юнитов
+
+                // Популярность партий раз в год
                 int _id = rnd.Next(ModEditor.ModProperties.Instance.PoliticParties.Count);
                 float x = ModEditor.ModProperties.Instance.PoliticParties[_id].GetPartyPopularityGain(_RegController);
                 AddPartyPopularity(_id, x);
@@ -712,5 +714,6 @@ namespace nsWorld
         public List<PoliticParty> Parties;
         public int MovementValue;   //Насколько быстро военные юниты перемещаются по региону во время боя
         public int Moral;
+        public float GNPToMilitaryPct;  //Процент GNP, который используется для постройки военных юнитов
     }
 }

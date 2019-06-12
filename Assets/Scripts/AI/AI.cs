@@ -9,6 +9,19 @@ namespace nsAI
 {
     public class AI
     {
+        // Список делегатов, возвращающих список возможных действий с оценками.
+        private List<Func<int, List<AIGameAction>>> _SolutionPresenters;
+
+        public void RegisterPresenter(Func<int, List<AIGameAction>> slnPresenter)
+        {
+            _SolutionPresenters.Add(slnPresenter);
+        }
+
+        public void UnRegisterPresenter(Func<int, List<AIGameAction>> slnPresenter)
+        {
+            _SolutionPresenters.Remove(slnPresenter);
+        }
+
         public void Turn(int HomelandID)
         {
             // Действия в бою
@@ -18,8 +31,33 @@ namespace nsAI
                 CombatProcessing(item, HomelandID);
                 CombatManager.Instance.CommonTurn(item, HomelandID);
             }
+
+            // Действия по всем подсистемам
+            Region_Op _region = World.TheWorld.GetRegion(HomelandID);
+            RegionController _rc = _region.RegionController;
+            double _natFund = _rc.NatFund;
+            int _prestige = _rc.Prestige;
+            List<AIGameAction> _GameActions = new List<AIGameAction>();
+            foreach (var item in _SolutionPresenters)
+            {
+                _GameActions.AddRange(item(HomelandID));
+            }
+            // Сортируем по убыванию оценки.
+            _GameActions = _GameActions.OrderByDescending(s => s.Rating).ToList();
+
+            // Выполнение допустимых действий.
+            foreach (var item in _GameActions)
+            {
+                if (item.CostPrestige <= _prestige && item.CostMoney <= _natFund)
+                {
+                    item.GameEvent.Invoke();
+                    _prestige -= item.CostPrestige;
+                    _natFund -= item.CostMoney;
+                }
+            }
         }
 
+#region Combats
         public void CombatProcessing(CombatData combat, int HomelandID)
         {
             var MyUnits = new List<CombatUnit>();
@@ -211,4 +249,5 @@ namespace nsAI
         public int AttackWeaponID;
 
     }
+#endregion
 }

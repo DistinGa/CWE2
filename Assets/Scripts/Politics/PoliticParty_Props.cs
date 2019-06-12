@@ -133,7 +133,7 @@ namespace ModEditor
         public void PassingLaw()
         {
             foreach (var item in GameEvent)
-                nsEventSystem.GameEventSystem.InvokeEvents(item.EventType, item.EventArgs);
+                item.Invoke();
         }
     }
 
