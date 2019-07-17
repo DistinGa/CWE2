@@ -4,6 +4,7 @@ namespace nsMilitary
 {
     public interface IMilitaryUnit
     {
+        int Generation { get; }
         string UnitName { get; }
         int Authority { get; }
         UnitType UnitType { get; }    //Land / Sea / Air

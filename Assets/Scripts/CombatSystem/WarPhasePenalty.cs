@@ -67,6 +67,15 @@ namespace nsCombat
             }
         }
 
+        // Для бонусов и штрафов от особенностей рельефа не используется.
+        public int Generation
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
         public int GetFireCost(int weaponID)
         {
             return 0;

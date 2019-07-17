@@ -53,4 +53,10 @@ namespace nsEventSystem
         public int RegionID;
         public int Amount;
     }
+
+    public sealed class Spends_EventArgs : EventArgs
+    {
+        public string BudgetItem;
+        public nsWorld.Spends SpendsRef;
+    }
 }

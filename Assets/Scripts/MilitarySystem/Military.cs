@@ -176,6 +176,14 @@ namespace nsMilitary
             }
         }
 
+        public int Generation
+        {
+            get
+            {
+                return MilitaryManager.Instance.GetSystemBody(Body).MilitaryGeneration;
+            }
+        }
+
         public int GetFireCost(int weaponID)
         {
             return WeaponSystems[weaponID].FireCost;

@@ -25,7 +25,7 @@ namespace ModEditor
         public double ProsperityAdditionToNatFund;  //Сколько процентов добавлять в нацфонд за один уровень благосостояния (0 - 100)
         public float PrivateWeeklyGrow;    //Еженедельный рост частного сектора (0-1%)
         public float PrivateLoadedWeeklyGrow;    //Еженедельный рост загруженного частного сектора (0-1%)
-        public float PrivateFactor;         //Во сколько раз дороже постройка юнитов за счёт частного сектора
+        //public float PrivateFactor;         //Во сколько раз дороже постройка юнитов за счёт частного сектора
         public float MilitarySystemCostIncreasePerUpgrade;  //Увеличение стоимости производства военной системы при апгрейде
         public float MilitarySystemCostDecreaseByUpgrade;   //Снижение стоимости производства военной системы от апгрейда типа 4
         public int MilitarySystemCapacityUpgrade;   //Увеличение вместимости (body) или уменьшение занимаемого места других систем при апгрейде
@@ -57,6 +57,8 @@ namespace ModEditor
 
         //Military
         public List<nsMilitary.UnitClass> UnitClasses;  //Классы юнитов (танк, истребитель, пехота и тд.)
+        public double GlobalDevLimit;   // Лимит выделенных средств на производство одного юнита (изучение одной системы). (В деньгах)
+        public float InitialDevLimit;   // Общий лимит выделения средств из бюджета на производство/изучение в начале игры
 
         //Combat
         public LocalizedDictionary<nsCombat.WarPhase> WarPhasesNames;   // Названия фаз войны

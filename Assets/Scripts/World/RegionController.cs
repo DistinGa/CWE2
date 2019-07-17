@@ -5,13 +5,6 @@ using System.Collections.Generic;
 using nsWorld;
 using nsEventSystem;
 
-public enum SpendsSource
-{
-    Nationalize,
-    Private,
-    Science
-}
-
 public enum SpendsSubjects
 {
     MilitaryUnit,
@@ -155,23 +148,27 @@ public class RegionController
     private void OnTurn(object sender, EventArgs e)
     {
         //Производство юнитов, апгрейд и изучение технологий
-        for (int i = _RegCData.Spends.Count - 1; i >= 0; i--)
+        foreach (var item in _RegCData.BudgetItems)
         {
-            Spends item = _RegCData.Spends[i];
-            if (item.Amount == 0d && item.Accumulation == 0d)
-            {
-                _RegCData.Spends.Remove(item);
-                continue;
-            }
-
-            item.DoSpend();
+            item.Value.DistributeFundsToSpends();
         }
+        //for (int i = _RegCData.Spends.Count - 1; i >= 0; i--)
+        //{
+        //    Spends item = _RegCData.Spends[i];
+        //    if (item.Amount == 0d && item.Accumulation == 0d)
+        //    {
+        //        _RegCData.Spends.Remove(item);
+        //        continue;
+        //    }
+
+        //    item.DoSpend();
+        //}
 
         //Рост частного сектора
         BudgetItem bi = _RegCData.BudgetItems[BudgetItem.BI_PrivateSector];
         bi.Value *= 1f + 0.01f * bi.WeeklyGrow;
         //Рост частного сектора от использования
-        bi.Value += GetSpends(SpendsSource.Private) * (1f + 0.01f * bi.LoadedWeeklyGrow);
+        bi.Value += GetSpends(BudgetItem.BI_PrivateSector) * (1f + 0.01f * bi.LoadedWeeklyGrow);
 
         //Изменение популярности партий каждый ход
         for (int i = 0; i < ModEditor.ModProperties.Instance.PoliticParties.Count; i++)
@@ -198,40 +195,13 @@ public class RegionController
     }
 
     //Траты определённого вида
-    public double GetSpends(SpendsSource SpType)
+    public double GetSpends(string SpType)
     {
         double res = 0;
-
-        foreach (var item in _RegCData.Spends)
+        
+        foreach (var item in _RegCData.BudgetItems[SpType].Spends)
         {
-            if (item.SpendsType == SpType)
-                res += item.Amount;
-        }
-
-        return res;
-    }
-
-    //Траты всех видов в массиве ((0) - Nationalize, (1) - Private, (2) - Science)
-    public double[] GetSpends()
-    {
-        double[] res = new double[3];
-
-        foreach (var item in _RegCData.Spends)
-        {
-            switch (item.SpendsType)
-            {
-                case SpendsSource.Nationalize:
-                    res[0] += item.Amount;
-                    break;
-                case SpendsSource.Private:
-                    res[1] += item.Amount;
-                    break;
-                case SpendsSource.Science:
-                    res[2] += item.Amount;
-                    break;
-                default:
-                    break;
-            }
+            res += item.TurnSpends;
         }
 
         return res;
@@ -240,11 +210,9 @@ public class RegionController
     //Ежемесячный прирост бюджета
     private void MonthBudgetChahge()
     {
-        double[] spends = GetSpends();
-
         double economy = _RegCData.BudgetItems.Values.Where(bi => bi.Ministry == BudgetMinistry.Economy).Sum(bi => bi.Value);
         double social = _RegCData.BudgetItems.Values.Where(bi => bi.Ministry == BudgetMinistry.Social).Sum(bi => bi.Value);
-        double privateSpends = spends[1], nationalizeSpends = spends[0];
+        double privateSpends = GetSpends(BudgetItem.BI_PrivateSector), nationalizeSpends = GetSpends(BudgetItem.BI_NatEconomy);
 
         _RegCData.NatFund += (economy - privateSpends - nationalizeSpends - social)
             * 0.01d * (100d + ProsperityLevel * ModEditor.ModProperties.Instance.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
@@ -298,109 +266,22 @@ public class RegionController
         f_TurnIsDone = true;
     }
 
-    public class Spends
+    /// <summary>
+    /// Элемент бюджета с указанным индексомм
+    /// </summary>
+    /// <param name="BudgetItemIndex"></param>
+    /// <returns></returns>
+    public BudgetItem GetBudgetItem(string BudgetItemIndex)
     {
-        int _Authority;
-        SpendsSubjects _Subject;
-        SpendsSource _Type;
-        SpendsGoals _Goal;
-        double _Amount; //траты за ход
-        double _Accumulation;   //уже накоплено
-        int _ID; //ID юнита, технологии или апгрейда
-
-        public Spends(int Authority, SpendsSubjects Subject, SpendsSource Type, SpendsGoals Goal, double Amount, int ObjID)
-        {
-            _Authority = Authority;
-            _Subject = Subject;
-            _Type = Type;
-            _Goal = Goal;
-            _Amount = Amount;
-            _ID = ObjID;
-        }
-
-        public SpendsSource SpendsType
-        {
-            set
-            {
-                //Если меняем источник инвестирования на Private, накопленную сумму увеличиваем. В итоге процент завершённости юнита остаётся прежним, изменяется стоимость "остаточной постройки"
-                if (_Type == SpendsSource.Nationalize && value == SpendsSource.Private)
-                    _Accumulation *= ModEditor.ModProperties.Instance.PrivateFactor;
-                //Аналогично поступаем в обратную сторону.
-                if(_Type == SpendsSource.Private && value == SpendsSource.Nationalize)
-                    _Accumulation /= ModEditor.ModProperties.Instance.PrivateFactor;
-
-                _Type = value;
-            }
-            get { return _Type; }
-        }
-
-        //Определение стоимости юнита, технологии или апгрейда
-        public double Cost
-        {
-            get
-            {
-                double res = 0;
-
-                switch (_Type)
-                {
-                    case SpendsSource.Nationalize:
-                        if (_Goal == SpendsGoals.MilitaryUnit)
-                            res = nsMilitary.MilitaryManager.Instance.GetMilitaryUnit(_ID).Cost;
-                        else if (_Goal == SpendsGoals.CosmoUnit)
-                            res = 0;
-                        break;
-                    case SpendsSource.Private:
-                        if (_Goal == SpendsGoals.MilitaryUnit)
-                            res = nsMilitary.MilitaryManager.Instance.GetMilitaryUnit(_ID).Cost * ModEditor.ModProperties.Instance.PrivateFactor;
-                        else if (_Goal == SpendsGoals.CosmoUnit)
-                            res = 0;
-                        break;
-                    case SpendsSource.Science:
-                        
-                        break;
-                    default:
-                        break;
-                }
-
-                return res;
-            }
-        }
-
-        public double Accumulation
-        {
-            get { return _Accumulation; }
-        }
-
-        public double Amount
-        {
-            set { _Amount = value; }
-            get { return _Amount; }
-        }
-
-        public void DoSpend()
-        {
-            _Accumulation += _Amount;
-            Execute();
-        }
-
-        void Execute()
-        {
-            if (_Accumulation < Cost)
-                return;
-
-            GameEventSystem.SpendingComplete(_Subject, _ID, _Authority);
- 
-            _Accumulation -= Cost;
-            Execute();
-       }
+        return _RegCData.BudgetItems[BudgetItemIndex];
     }
+
 }
 
 public class RegionController_Ds
 {
     public int PP;  //Political points
     public int Prestige;
-    public List<RegionController.Spends> Spends;
 
     //Бюджет
     public double NatFund;

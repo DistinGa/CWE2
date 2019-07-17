@@ -10,6 +10,7 @@ namespace nsMilitary
         int _authority;
         public int _count;
         public string _name;
+        public int _generation;
         UnitType _unitType;
         public int _unitClass;
         public int _armor;
@@ -72,6 +73,14 @@ namespace nsMilitary
                 List<int> _availableWeapons = new List<int>();
                 _availableWeapons.Add(0);
                 return _availableWeapons;
+            }
+        }
+
+        public int Generation
+        {
+            get
+            {
+                return _generation;
             }
         }
 

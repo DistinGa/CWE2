@@ -57,6 +57,8 @@ namespace nsEventSystem
             public static readonly EventTypeClass AddProsperity = new EventTypeClass();    //Изменение уровня благосостояния.
 
             //События с сылочными параметрами (не используются при сериализации)
+            public static readonly EventTypeClass DeleteSpends = new EventTypeClass();    //Удаление выполненного заказа на постройку/изучение.
+            public static readonly EventTypeClass AddSpends = new EventTypeClass();    //Добавление заказа на постройку/изучение в очередь.
         }
 
         //Класс используется для хранения объектных ключей словаря CalcEventAggregator (используются для расчётов, например скидок и бонусов)
