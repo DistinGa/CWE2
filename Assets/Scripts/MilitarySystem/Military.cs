@@ -203,6 +203,11 @@ namespace nsMilitary
         {
             return WeaponSystems[weaponID].TargetClasses;
         }
+
+        public IMilitaryUnit Clone()
+        {
+            return new MilitaryUnit(Authority, UnitType, UnitClass, UnitName, Body, Weapon, Reliability, Electronics);
+        }
     }
 
     public class UnitSystemBaseClass

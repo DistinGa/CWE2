@@ -24,5 +24,7 @@ namespace nsMilitary
         int GetFireCost(int weaponID);
         int GetRange(int weaponID);
         List<int> TargetClasses(int weaponID);
+
+        IMilitaryUnit Clone();
     }
 }

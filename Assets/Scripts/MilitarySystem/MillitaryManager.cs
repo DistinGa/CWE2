@@ -126,13 +126,36 @@ namespace nsMilitary
             return _res;
         }
 
-        public int NewMilitaryUnit(IMilitaryUnit militaryUnit)
+        /// <summary>
+        /// Добавление новой модели юнитов в систему. Если gift = true (передача юнитов другому региону), не добавляем в таблицу MilitaryUnitsToProduce.
+        /// (Передаваться могут толкько уже существующие модели. Поэтому параметр gift есть только в этой реализации метода.)
+        /// </summary>
+        /// <param name="militaryUnit"></param>
+        /// <param name="gift"></param>
+        /// <returns></returns>
+        public int NewMilitaryUnit(IMilitaryUnit militaryUnit, bool gift = false)
         {
             int maxKey = _MilitaryManagerData.MilitaryUnits.Count == 0? 0: _MilitaryManagerData.MilitaryUnits.Keys.Max() + 1;
             _MilitaryManagerData.MilitaryUnits.Add(maxKey, militaryUnit);
+
+            if(!gift)
+                _MilitaryManagerData.MilitaryUnitsToProduce[militaryUnit.Authority] = maxKey;
+
             return maxKey;
         }
 
+        /// <summary>
+        /// Добавление новой модели юнитов в систему.
+        /// </summary>
+        /// <param name="authority"></param>
+        /// <param name="unitType"></param>
+        /// <param name="unitClass"></param>
+        /// <param name="unitName"></param>
+        /// <param name="body"></param>
+        /// <param name="weapon"></param>
+        /// <param name="reliability"></param>
+        /// <param name="electronics"></param>
+        /// <returns></returns>
         public int NewMilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
         {
             return NewMilitaryUnit(new MilitaryUnit(authority, unitType, unitClass, unitName, body, weapon, reliability, electronics));
@@ -317,6 +340,7 @@ namespace nsMilitary
     {
         public Dictionary<int, MilitaryBase> MilBases;
         public Dictionary<int, IMilitaryUnit> MilitaryUnits; //Список всех существующих юнитов в игре
+        public Dictionary<int, int> MilitaryUnitsToProduce; //Список военных юнитов для постройки (Key - Authority (кто может строить), Value - MilitaryUnit ID)
         public Dictionary<int, SystemBody> BodySystems; //Список всех существующих SystemBody в игре
         public Dictionary<int, SystemWeapon> WeaponSystems; //Список всех существующих SystemWeapon в игре
         public Dictionary<int, SystemReliability> ReliabilitySystems; //Список всех существующих SystemReliability в игре

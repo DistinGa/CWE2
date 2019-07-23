@@ -103,5 +103,32 @@ namespace nsMilitary
         {
             return _targetClasses;
         }
+
+        public IMilitaryUnit Clone()
+        {
+            NeutralMilitaryUnit newUnit = new NeutralMilitaryUnit();
+
+            newUnit._authority = _authority;
+            newUnit._count = _count;
+            newUnit._name = _name;
+            newUnit._generation = _generation;
+            newUnit._unitType = _unitType;
+            newUnit._unitClass = _unitClass;
+            newUnit._armor = _armor;
+            newUnit._capacity = _capacity;
+            newUnit._cost = _cost;
+            newUnit._countermeasures = _countermeasures;
+            newUnit._engine = _engine;
+            newUnit._maneuver = _maneuver;
+            newUnit._radar = _radar;
+            newUnit._stealth = _stealth;
+            newUnit._supply = _supply;
+            newUnit._fireCost = _fireCost;
+            newUnit._hitPoints = _hitPoints;
+            newUnit._range = _range;
+            newUnit._targetClasses = _targetClasses;
+
+            return newUnit;
+        }
     }
 }

@@ -107,5 +107,21 @@ namespace nsCombat
             _hitPoints += penalties._hitPoints;
             _range += penalties._range;
     }
-}
+
+        public IMilitaryUnit Clone()
+        {
+            NeutralMilitaryUnit newUnit = new NeutralMilitaryUnit();
+
+            newUnit._armor = _armor;
+            newUnit._countermeasures = _countermeasures;
+            newUnit._engine = _engine;
+            newUnit._maneuver = _maneuver;
+            newUnit._radar = _radar;
+            newUnit._stealth = _stealth;
+            newUnit._hitPoints = _hitPoints;
+            newUnit._range = _range;
+
+            return newUnit;
+        }
+    }
 }
