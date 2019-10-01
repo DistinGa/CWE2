@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 namespace ModEditor
 {
@@ -20,6 +21,7 @@ namespace ModEditor
         string _Name;
         PoliticPartyType _PartyType;
         List<PoliticLaw_Props> _Laws; //Список доступных для партии законов
+        Color _color;
 
         public PoliticParty_Props(string Name, PoliticPartyType PartyType, List<PoliticLaw_Props> Laws)
         {
@@ -36,6 +38,11 @@ namespace ModEditor
         public PoliticPartyType PartyType
         {
             get { return PartyType; }
+        }
+
+        public Color Color
+        {
+            get { return _color; }
         }
 
         /// <summary>
@@ -57,7 +64,7 @@ namespace ModEditor
                 laws = _Laws.Where(l => l.Condition.CheckCondition()).ToList();
             }
 
-            int ind = (new Random()).Next(_Laws.Count);
+            int ind = (new System.Random()).Next(_Laws.Count);
             return _Laws.IndexOf(laws[ind]);
         }
 

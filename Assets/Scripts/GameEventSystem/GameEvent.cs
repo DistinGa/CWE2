@@ -6,6 +6,7 @@ namespace nsEventSystem
     {
         public string EventType;
         public EventArgs EventArgs;
+        public bool AffectBudget;
 
         public GameEvent(EventTypeClass EventType)
         {

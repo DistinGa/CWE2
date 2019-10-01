@@ -42,12 +42,14 @@ public class RegionController
 
         GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
+        GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
     }
 
     ~RegionController()
     {
         GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
+        GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
     }
 
     #region Properties
@@ -107,6 +109,41 @@ public class RegionController
             if (_RegCData.Corruption > 100)
                 _RegCData.Corruption = 100;
         }
+    }
+
+    public double Collaboration
+    {
+        get
+        {
+            double res = 0d;
+
+            foreach (Region_Op item in nsWorld.World.TheWorld.Regions.Values.Where(r => r.RegionController == this).ToList())
+            {
+                res += item.GNP;
+            }
+
+            return res;
+        }
+    }
+
+    public List<double> NatFundHistory
+    {
+        get { return _RegCData.NatFundHistory; }
+    }
+
+    public List<double> CollaborationHistory
+    {
+        get { return _RegCData.CollaborationHistory; }
+    }
+
+    public List<int> InflationHistory
+    {
+        get { return _RegCData.InflationHistory; }
+    }
+
+    public List<int> CorruptionHistory
+    {
+        get { return _RegCData.CorruptionHistory; }
     }
 
     public int TechMilitary
@@ -184,12 +221,16 @@ public class RegionController
         MonthBudgetChahge();
     }
 
-    private void EndOfYear()
+    private void EndOfYear(object sender, EventArgs e)
     {
-
+        //История разделов бюджета
+        _RegCData.NatFundHistory.Add(_RegCData.NatFund);
+        _RegCData.CollaborationHistory.Add(Collaboration);
+        _RegCData.CorruptionHistory.Add(_RegCData.Corruption);
+        _RegCData.InflationHistory.Add(_RegCData.Inflation);
     }
 
-    private void NewYear()
+    private void NewYear(object sender, EventArgs e)
     {
 
     }
@@ -214,7 +255,7 @@ public class RegionController
         double social = _RegCData.BudgetItems.Values.Where(bi => bi.Ministry == BudgetMinistry.Social).Sum(bi => bi.Value);
         double privateSpends = GetSpends(BudgetItem.BI_PrivateSector), nationalizeSpends = GetSpends(BudgetItem.BI_NatEconomy);
 
-        _RegCData.NatFund += (economy - privateSpends - nationalizeSpends - social)
+        _RegCData.NatFund += (economy - privateSpends - nationalizeSpends - social - Collaboration)
             * 0.01d * (100d + ProsperityLevel * ModEditor.ModProperties.Instance.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
     }
 
@@ -284,10 +325,14 @@ public class RegionController_Ds
     public int Prestige;
 
     //Бюджет
-    public double NatFund;
     public Dictionary<string, BudgetItem> BudgetItems;
+    public double NatFund;
     public int Corruption;   //0 - 100
     public int Inflation;    //0 - 100
+    public List<double> NatFundHistory;
+    public List<double> CollaborationHistory;
+    public List<int> CorruptionHistory;
+    public List<int> InflationHistory;
     public int TechMilitary;    //MilitaryGeneration
     public int TechProduction;
 }

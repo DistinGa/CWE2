@@ -95,6 +95,11 @@ namespace nsWorld
             get { return _RegData.Authority; }
         }
 
+        public int GNP
+        {
+            get { return _RegData.GNP; }
+        }
+
         /// <summary>
         /// Поочерёдный ход региона.
         /// Неконтролируемые выполняют свои действия, контролируемые передают управление ИИ или игроку
@@ -198,7 +203,7 @@ namespace nsWorld
 
         private void EndOfYear(object sender, EventArgs e)
         {
-            if (_RegController != null)  //Только для неконтроллируемых регионов
+            if (_RegController == null)  //Только для неконтроллируемых регионов
                 _RegData.GNPhistory.Add(_RegData.GNP);
         }
 

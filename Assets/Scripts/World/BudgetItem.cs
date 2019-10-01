@@ -21,6 +21,8 @@ namespace nsWorld
         public float DevLimitPct; // Лимит на использование бюджета для постройки/изучения (в процентах: 0-1)
         public List<Spends> Spends; // Очередь на постройку/изучение
 
+        List<double> _history;
+
         public BudgetItem(string ID_Name, BudgetMinistry Ministry, float InitialLimit)
         {
             this.ID_Name = ID_Name;
@@ -30,12 +32,14 @@ namespace nsWorld
 
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.DeleteSpends, DeleteSpends);
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.AddSpends, AddSpends);
+            GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.NewYearEvents, NewYear);
         }
 
         ~BudgetItem()
         {
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.DeleteSpends, DeleteSpends);
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.AddSpends, AddSpends);
+            GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.NewYearEvents, NewYear);
         }
 
         // Лимит на использование бюджета для постройки/изучения (в деньгах)
@@ -59,6 +63,11 @@ namespace nsWorld
             Spends_EventArgs arg = e as Spends_EventArgs;
             if(arg.BudgetItem == ID_Name)
                 Spends.Remove(arg.SpendsRef);
+        }
+
+        private void NewYear(object sender, EventArgs e)
+        {
+            _history.Add(Value);
         }
 
         /// <summary>

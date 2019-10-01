@@ -7,6 +7,8 @@ using nsWorld;
 using nsMilitary;
 using ModEditor;
 using nsAI;
+using WPM;
+using CWE2UI;
 
 public class GameManager : MonoBehaviour {
     public static GameManager GM;
@@ -16,12 +18,26 @@ public class GameManager : MonoBehaviour {
     float _TickDuration;
     float _WaitPlayerTurnTime = 300f; //Время ожидания хода игрока (по умолчанию 5 минут)
     bool _f_WaitTimeIsOut;  //Время оидания хода вышло
+    WorldMapGlobe _map;
+    [SerializeField] MainWindow _mainWindow;
 
+    #region Properties
     public GameStates GameState
     {
         get { return _GState; }
         private set { _GState = value; }
     }
+
+    public WorldMapGlobe Map
+    {
+        get { return _map; }
+    }
+
+    public MainWindow MainWindow
+    {
+        get { return _mainWindow; }
+    }
+    #endregion
 
     public AI AI
     {
@@ -41,6 +57,7 @@ public class GameManager : MonoBehaviour {
         _AI = new AI();
         GameState = GameStates.Initial;
         Assets.SimpleLocalization.LocalizationManager.Read();
+        _map = WorldMapGlobe.instance;
 
         //// Тестирование GA
         //const int _targetsCount = 7, _weaponsCount = 5;
