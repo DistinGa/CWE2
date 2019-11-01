@@ -19,9 +19,6 @@ public class CircleDiagram : MonoBehaviour
             throw new System.Exception("Incorrect component properties.");
         }
 
-        //Скрываем маркер диаграммы.
-        GetComponent<Image>().enabled = false;
-
         imageList = new List<Image>();
 
         GameObject newGO;

@@ -64,7 +64,7 @@ namespace ModEditor
                 laws = _Laws.Where(l => l.Condition.CheckCondition()).ToList();
             }
 
-            int ind = (new System.Random()).Next(_Laws.Count);
+            int ind = GameManager.GM.Randomizer.GetRndMax(_Laws.Count);
             return _Laws.IndexOf(laws[ind]);
         }
 

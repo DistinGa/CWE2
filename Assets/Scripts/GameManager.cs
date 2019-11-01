@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour {
     public static GameManager GM;
 
     AI _AI;
+    Randomizer _Randomizer;
     GameStates _GState;
     float _TickDuration;
     float _WaitPlayerTurnTime = 300f; //Время ожидания хода игрока (по умолчанию 5 минут)
@@ -37,12 +38,17 @@ public class GameManager : MonoBehaviour {
     {
         get { return _mainWindow; }
     }
-    #endregion
 
     public AI AI
     {
         get { return _AI; }
     }
+
+    public Randomizer Randomizer
+    {
+        get { return _Randomizer; }
+    }
+    #endregion
 
     void Awake ()
     {
@@ -55,9 +61,11 @@ public class GameManager : MonoBehaviour {
         GM = this;
 
         _AI = new AI();
+        _Randomizer = new Randomizer();
         GameState = GameStates.Initial;
         Assets.SimpleLocalization.LocalizationManager.Read();
         _map = WorldMapGlobe.instance;
+
 
         //// Тестирование GA
         //const int _targetsCount = 7, _weaponsCount = 5;

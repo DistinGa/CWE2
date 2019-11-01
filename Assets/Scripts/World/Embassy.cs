@@ -326,7 +326,7 @@ namespace nsEmbassy
 
         void ExecuteMission()
         {
-            if (new Random().Next(0, 100) <= success)
+            if (GameManager.GM.Randomizer.GetRndRange(0, 100) <= success)
             {
                 GameEventSystem.InvokeEvents(DipMission.EventType, DipMission.EventArgs);
                 //Отправка события о выполнении миссии

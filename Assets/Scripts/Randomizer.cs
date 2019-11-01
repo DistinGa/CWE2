@@ -21,4 +21,14 @@ public class Randomizer
     {
         return _rnd.Next();
     }
+
+    public int GetRndRange(int min, int max)
+    {
+        return _rnd.Next(min, max);
+    }
+
+    public int GetRndMax(int max)
+    {
+        return _rnd.Next(0, max);
+    }
 }

@@ -209,7 +209,7 @@ namespace nsWorld
 
         private void NewYear(object sender, EventArgs e)
         {
-            Random rnd = new Random();
+            Randomizer rnd = GameManager.GM.Randomizer;
 
             if (_RegController == null)  //Только для неконтролируемых регионов
             {
@@ -217,14 +217,14 @@ namespace nsWorld
                 int add = 0;
                 if (_RegData.Authority == -1)
                 {
-                    add = rnd.Next(ModEditor.ModProperties.Instance.GNP_Neutral_Min, ModEditor.ModProperties.Instance.GNP_Neutral_Max + 1);
+                    add = rnd.GetRndRange(ModEditor.ModProperties.Instance.GNP_Neutral_Min, ModEditor.ModProperties.Instance.GNP_Neutral_Max + 1);
                 }
                 else
                 {
                     if (World.TheWorld.GetRegionController(_RegData.Authority).ProsperityLevel > 0)
-                        add = rnd.Next(ModEditor.ModProperties.Instance.GNP_HighDevLevel_Min, ModEditor.ModProperties.Instance.GNP_HighDevLevel_Max + 1);
+                        add = rnd.GetRndRange(ModEditor.ModProperties.Instance.GNP_HighDevLevel_Min, ModEditor.ModProperties.Instance.GNP_HighDevLevel_Max + 1);
                     else
-                        add = rnd.Next(ModEditor.ModProperties.Instance.GNP_LowDevLevel_Min, ModEditor.ModProperties.Instance.GNP_LowDevLevel_Max + 1);
+                        add = rnd.GetRndRange(ModEditor.ModProperties.Instance.GNP_LowDevLevel_Min, ModEditor.ModProperties.Instance.GNP_LowDevLevel_Max + 1);
                 }
 
                 _RegData.GNP += add;
@@ -232,14 +232,14 @@ namespace nsWorld
                 // Постройка нейтральных юнитов
 
                 // Популярность партий раз в год
-                int _id = rnd.Next(ModEditor.ModProperties.Instance.PoliticParties.Count);
+                int _id = rnd.GetRndMax(ModEditor.ModProperties.Instance.PoliticParties.Count);
                 float x = ModEditor.ModProperties.Instance.PoliticParties[_id].GetPartyPopularityGain(_RegController);
                 AddPartyPopularity(_id, x);
             }
 
             // Для всех регионов.
             // Радикальные группы раз в год.
-            int _idr = rnd.Next(_RegData.Radicals.Count);
+            int _idr = rnd.GetRndMax(_RegData.Radicals.Count);
             // Если попали на группу, соответствующую текущему режиму (не радикалы), меняем индекс.
             if (_idr == Authority)
             {

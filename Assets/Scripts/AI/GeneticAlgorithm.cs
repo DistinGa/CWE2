@@ -11,7 +11,7 @@ namespace nsAI
 
         int survivorsCount;
 
-        Random rnd;
+        Randomizer rnd;
 
         List<Sample> Population;
         int PopSize;
@@ -37,7 +37,7 @@ namespace nsAI
             PopSize = 1 + (int)(2 * Math.Log(Math.Pow((double)TargetsValue.Length, (double)weaponsFireCost.Length), 2d));
             survivorsCount = 1 + (int)Math.Round(PopSize * SUVIVORSS_PERCENT, 0);
 
-            rnd = new Random();
+            rnd = GameManager.GM.Randomizer;
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace nsAI
 
             for (int j = 0; j < sampleSize; j++)
             {
-                s.Genome[j] = rnd.Next(targetsCount);
+                s.Genome[j] = rnd.GetRndMax(targetsCount);
             }
 
             ValidateSample(ref s);
@@ -218,7 +218,7 @@ namespace nsAI
 
             for (int i = 0; i < s1.Genome.Length; i++)
             {
-                if (rnd.Next(100) < rnd.Next(100))
+                if (rnd.GetRndMax(100) < rnd.GetRndMax(100))
                 {
                     child.Genome[i] = s2.Genome[i];
                 }
@@ -256,7 +256,7 @@ namespace nsAI
             {
                 for (int i = 0; i < _popCount; i++)
                 {
-                    var _tmpInt = rnd.Next(_popCount);
+                    var _tmpInt = rnd.GetRndMax(_popCount);
                     if (_tmpInt == i)
                     {
                         if (_tmpInt == _popCount - 1)

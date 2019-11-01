@@ -14,7 +14,8 @@ public class Card : MonoBehaviour
 
 
     // Use this for initialization
-    void Start () {
+    void Start ()
+    {
 		
 	}
 	
