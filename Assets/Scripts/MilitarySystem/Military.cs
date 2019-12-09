@@ -6,6 +6,7 @@ namespace nsMilitary
     public class MilitaryUnit : IMilitaryUnit
     {
         public string UnitName { get; private set; }
+        public string Version { get; private set; }
         public int Authority { get; set; }
         public UnitType UnitType { get; set; }    //Land / Sea / Air
         public int UnitClass { get; set; }   //Helicopter / Tank / Submarine ...
@@ -14,12 +15,18 @@ namespace nsMilitary
 
         private Dictionary<int, SystemWeapon> _weaponSystems;
 
-        public MilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
+        public MilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, string version)
         {
             Authority = authority;
             UnitType = unitType;
             UnitClass = unitClass;
             UnitName = unitName;
+            Version = version;
+        }
+
+        public MilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, string version, int body, List<int> weapon, List<int> reliability, List<int> electronics)
+            :this(authority, unitType, unitClass, unitName, version)
+        {
             Body = body;
             Weapon = weapon;
             Reliability = reliability;
@@ -206,7 +213,7 @@ namespace nsMilitary
 
         public IMilitaryUnit Clone()
         {
-            return new MilitaryUnit(Authority, UnitType, UnitClass, UnitName, Body, Weapon, Reliability, Electronics);
+            return new MilitaryUnit(Authority, UnitType, UnitClass, UnitName, Version, Body, Weapon, Reliability, Electronics);
         }
     }
 

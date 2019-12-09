@@ -156,9 +156,9 @@ namespace nsMilitary
         /// <param name="reliability"></param>
         /// <param name="electronics"></param>
         /// <returns></returns>
-        public int NewMilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, int body, List<int> weapon, List<int> reliability, List<int> electronics)
+        public int NewMilitaryUnit(int authority, UnitType unitType, int unitClass, string unitName, string unitVersion, int body, List<int> weapon, List<int> reliability, List<int> electronics)
         {
-            return NewMilitaryUnit(new MilitaryUnit(authority, unitType, unitClass, unitName, body, weapon, reliability, electronics));
+            return NewMilitaryUnit(new MilitaryUnit(authority, unitType, unitClass, unitName, unitVersion, body, weapon, reliability, electronics));
         }
 
         public void NewBodySystem(int authority, string systemName, double initCost, double cost, int capacity, int militaryGeneration, bool investigated, bool active, int upgradeCount, List<int> masterClasses, int armor, int stealth)
