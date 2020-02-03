@@ -81,7 +81,13 @@ namespace nsMilitary
 
     public class SeaPool
     {
+        string _LocKey;
         List<MilitaryPool> _NavyList; //Список флотов контролируемых стран. Index - Authority
+
+        public string Name
+        {
+            get { return Assets.SimpleLocalization.LocalizationManager.Localize(_LocKey); }
+        }
 
         public SeaPool()
         {
