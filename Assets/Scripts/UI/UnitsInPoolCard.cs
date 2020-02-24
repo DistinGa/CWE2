@@ -11,11 +11,6 @@ public class UnitsInPoolCard : MonoBehaviour
     [SerializeField] Image UnitIcon;
     int _toSendAmount;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-
     public void ScrollSync()
     {
         _toSendAmount = (int)Mathf.RoundToInt(ScrollBar.value * _fullAmount);
@@ -28,5 +23,18 @@ public class UnitsInPoolCard : MonoBehaviour
             _toSendAmount = 0;
 
         ScrollBar.value = (float)_toSendAmount / (float)_fullAmount;
+    }
+
+    void NewAmmount(int NewUnitsAmount)
+    {
+        _fullAmount = NewUnitsAmount;
+
+        if (_toSendAmount > NewUnitsAmount)
+        {
+            _toSendAmount = NewUnitsAmount;
+            InputField.text = _toSendAmount.ToString();
+        }
+
+        HandInputSync();
     }
 }
