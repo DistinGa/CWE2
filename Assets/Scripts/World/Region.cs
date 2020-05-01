@@ -15,7 +15,7 @@ namespace nsWorld
 
         public Region_Op(int RegID, int SeaPoolID, RegionController RegController, Region_Ds RegData)
         {
-            _RegData = new Region_Ds();
+            //_RegData = new Region_Ds();
             _RegController = RegController;
             _RegID = RegID;
             _SeaPoolID = SeaPoolID;
@@ -36,6 +36,11 @@ namespace nsWorld
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.NewYearEvents, NewYear);
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.ChangeAuthority, OnChangeAuthority);
             GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.AddProsperity, OnAddProsperity);
+        }
+
+        public int RegID
+        {
+            get { return _RegID; }
         }
 
         public string RegName

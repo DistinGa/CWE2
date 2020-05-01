@@ -115,9 +115,10 @@ namespace nsWorld
 
         private void LoadRegions()
         {
-            foreach (var reg in ModEditor.ModProperties.Instance.Regions)
+            for (int i = 0; i < ModEditor.ModProperties.Instance.Regions.Count; i++)
             {
-                _Regions.Add(reg.RegID, new Region_Op(reg.RegID, reg.SeaPoolID, FindRegionControllerForRegID(reg.RegID), reg.RegionData));
+                var reg = ModEditor.ModProperties.Instance.Regions[i];
+                _Regions.Add(reg.RegID, new Region_Op(reg.RegID, reg.SeaPoolID, FindRegionControllerForRegID(reg.RegID), ModEditor.ModProperties.Instance.Regions_Originals[i]));
             }
         }
 

@@ -11,7 +11,13 @@ public class EmbassyListRow : MonoBehaviour
 
     public int RegID;
 
-    EmbassyUI EmbassyUI;
+    public EmbassyUI EmbassyUI;
+
+    public bool IsSelected
+    {
+        get { return SelectBack.activeSelf; }
+        set { SelectBack.SetActive(value); }
+    }
 
     public void SelectCountry()
     {

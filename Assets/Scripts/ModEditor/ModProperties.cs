@@ -15,6 +15,7 @@ namespace ModEditor
         public List<string> Authorities;  //Список политических режимов (-1 - нейтральный).
         public List<int> ControlledRegions;  //Список контролируемых регионов. Индекс соответствует Authority.
         public List<Region_Prop> Regions;        //Список неизменяемых свойств регионов
+        public List<nsWorld.Region_Ds> Regions_Originals;        //Список изменяемых свойств регионов (Индекс совпадает с Regions)
 
         //Ежегодный прирост GNP в неконтролируемых странах.
         public int GNP_Neutral_Min, GNP_Neutral_Max, GNP_HighDevLevel_Min, GNP_HighDevLevel_Max, GNP_LowDevLevel_Min, GNP_LowDevLevel_Max;  //Интервалы изменения GNP нейтральных стран
