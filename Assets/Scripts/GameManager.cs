@@ -13,12 +13,13 @@ using CWE2UI;
 public class GameManager : MonoBehaviour {
     public static GameManager GM;
 
+    int _PlayerAuthority;
     AI _AI;
     Randomizer _Randomizer;
     GameStates _GState;
     float _TickDuration;
     float _WaitPlayerTurnTime = 300f; //Время ожидания хода игрока (по умолчанию 5 минут)
-    bool _f_WaitTimeIsOut;  //Время оидания хода вышло
+    bool _f_WaitTimeIsOut;  //Время ожидания хода вышло
     WorldMapGlobe _map;
     [SerializeField] MainWindow _mainWindow;
 
@@ -47,6 +48,11 @@ public class GameManager : MonoBehaviour {
     public Randomizer Randomizer
     {
         get { return _Randomizer; }
+    }
+
+    public int PlayerAuthority
+    {
+        get { return _PlayerAuthority; }
     }
     #endregion
 

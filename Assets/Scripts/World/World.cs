@@ -76,6 +76,9 @@ namespace nsWorld
             get { return _Regions; }
         }
 
+        /// <summary>
+        /// Key - RegID, Value - список посольств по режимам (Authority)
+        /// </summary>
         public Dictionary<int, List<nsEmbassy.Embassy>> Embassies
         {
             get

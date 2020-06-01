@@ -65,6 +65,14 @@ namespace nsEmbassy
             get { return ModProperties.Instance.InitEmbassyUpgradeCost * Math.Pow(ModProperties.Instance.EmbassyUpgradeCostFactor, EmbassyLevel); }
         }
 
+        /// <summary>
+        /// Посольство на последнем уровне развития
+        /// </summary>
+        public bool HighestEmbassy
+        {
+            get { return EmbassyLevel + 1 >= ModProperties.Instance.EmbassyLevelSizes.Count; }
+        }
+
         public Embassy(int pAuthorityID, int pRegionID, int pEmbassyLevel, int pDipFocusID)
         {
             authorityID = pAuthorityID;
@@ -88,16 +96,8 @@ namespace nsEmbassy
         /// <summary>
         /// Апгрейд посольства.
         /// </summary>
-        /// <param name="SourceID">0 - из нацфонда; 1 - из престижа</param>
-        public void Upgrade(int SourceID = 0)
+        public void Upgrade()
         {
-            if (EmbassyLevel + 1 >= ModProperties.Instance.EmbassyLevelSizes.Count)
-                return; //Посольство и так на последнем уровне
-
-            RegionController RC = nsWorld.World.TheWorld.GetRegionController(AuthorityID);
-            if (!RC.PayCount(SourceID, EmbassyUpgradeCost))
-                return; //Не хватает престижа.
-
             EmbassyLevel++;
             //Добавление сетей
             int cnt = ModProperties.Instance.EmbassyLevelSizes[EmbassyLevel] - SpyNets.Count;

@@ -105,6 +105,11 @@ namespace nsWorld
             get { return _RegData.GNP; }
         }
 
+        public int Score
+        {
+            get { return _RegData.Score; }
+        }
+
         /// <summary>
         /// Поочерёдный ход региона.
         /// Неконтролируемые выполняют свои действия, контролируемые передают управление ИИ или игроку

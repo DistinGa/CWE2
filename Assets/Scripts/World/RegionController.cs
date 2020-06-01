@@ -34,7 +34,6 @@ public class RegionController
     public RegionController(int Authority, int HomelandID, nsAI.AI AI = null)
     {
         AuthorityID = Authority;
-        //this.Color = Color;
         this.HomelandID = HomelandID;
         this.AI = AI;
 
@@ -43,6 +42,8 @@ public class RegionController
         GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
         GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
+        GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.UpgradeEmbassyOuter, UpgradeEmbassy);
+        GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.UpgradeMilBaseOuter, UpgradeMilBase);
     }
 
     ~RegionController()
@@ -50,6 +51,8 @@ public class RegionController
         GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndMonthEvents, EndOfMonth);
         GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.EndYearEvents, EndOfYear);
+        GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.UpgradeEmbassyOuter, UpgradeEmbassy);
+        GameEventSystem.UnSubscribe(GameEventSystem.MyEventsTypes.UpgradeMilBaseOuter, UpgradeMilBase);
     }
 
     #region Properties
@@ -170,6 +173,11 @@ public class RegionController
         }
     }
 
+    public int DevLevel
+    {
+        get { return _RegCData.DevLevel; }
+    }
+
     public Region_Op ControlledRegion
     {
         get { return World.TheWorld.GetRegion(HomelandID); }
@@ -260,6 +268,47 @@ public class RegionController
     }
 
     /// <summary>
+    /// Апгрейд посольства
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e">int1 - RegID, int2 - Authority, int3 - 0/1</param>
+    private void UpgradeEmbassy(object sender, EventArgs e)
+    {
+        ThreeInt_EventArgs _args = e as ThreeInt_EventArgs;
+
+        if (_args.int2 != AuthorityID)
+            return; //Событие не для этого контроллера
+
+        nsEmbassy.Embassy _embassy = World.TheWorld.Embassies[_args.int1][_args.int2];
+
+        if (_embassy.HighestEmbassy)
+            return; //Посольство и так на последнем уровне
+
+        if (PayCount(_args.int3, _embassy.EmbassyUpgradeCost))
+            return; //Не хватает престижа или денег.
+
+        _embassy.Upgrade();
+    }
+
+    /// <summary>
+    /// Апгрейд военной базы
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e">int1 - RegID, int2 - Authority, int3 - 0/1</param>
+    private void UpgradeMilBase(object sender, EventArgs e)
+    {
+        ThreeInt_EventArgs _args = e as ThreeInt_EventArgs;
+
+        if (_args.int2 != AuthorityID)
+            return; //Событие не для этого контроллера
+
+        if (PayCount(_args.int3, nsMilitary.MilitaryManager.Instance.GetMilitaryBaseUpgradeCost(World.TheWorld.Regions[_args.int1].MilitaryBaseID)))
+            return; //Не хватает престижа или денег.
+
+        nsMilitary.MilitaryManager.Instance.UpgradeMilitaryBase(_args.int1, AuthorityID);
+    }
+
+    /// <summary>
     /// Оплата чего-либо. Может производиться за счёт Престижа или из Нацфонда.
     /// </summary>
     /// <param name="SourceID">0 - из нацфонда; 1 - из престижа</param>
@@ -335,4 +384,5 @@ public class RegionController_Ds
     public List<int> InflationHistory;
     public int TechMilitary;    //MilitaryGeneration
     public int TechProduction;
+    public int DevLevel;
 }

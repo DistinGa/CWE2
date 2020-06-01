@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace ModEditor
 {
@@ -12,27 +13,21 @@ namespace ModEditor
         public const float YEAR_TURNS_COUNT = 48; //Количество ходов в году (float, потому что на это число чаще всего будут делить целые числа)
         public int GameYearsCount;  //Количество лет игры, после которого игра заканчивается
 
-        public List<string> Authorities;  //Список политических режимов (-1 - нейтральный).
+        public List<string> Authorities;  //Список политических режимов (-1 - нейтральный). (В списке содержатся индексы подсистемы локализации)
+        public List<Sprite> AuthorityIcons; //Иконки политических режимов. Индекс соответствует Authority.
+        public string NeutralRegimeNameID;    //Индекс названия нейтрального режима в подсистеме локализации.
+        public Sprite NeutralRegimeIcon;    //Иконка нейтрального режима.
         public List<int> ControlledRegions;  //Список контролируемых регионов. Индекс соответствует Authority.
-        public List<Region_Prop> Regions;        //Список неизменяемых свойств регионов
-        public List<nsWorld.Region_Ds> Regions_Originals;        //Список изменяемых свойств регионов (Индекс совпадает с Regions)
+        public Dictionary<int, Region_Prop> Regions;        //Список неизменяемых свойств регионов
+        public Dictionary<int, nsWorld.Region_Ds> Regions_Originals;        //Список изменяемых свойств регионов
 
         //Ежегодный прирост GNP в неконтролируемых странах.
         public int GNP_Neutral_Min, GNP_Neutral_Max, GNP_HighDevLevel_Min, GNP_HighDevLevel_Max, GNP_LowDevLevel_Min, GNP_LowDevLevel_Max;  //Интервалы изменения GNP нейтральных стран
         public int ProspMaxValue;    //+/- для Radicalizm и Prosperity параметра DevLevel
-        public int DefaultMilBaseCapacity;  //Вместимость новой базы
-        public float UnitMovementSpeed;     //Скорость перемещения военных юнитов между пулами
-        public int UnitMovementCost;        //Стоимость перемещения военных юнитов между пулами ($ за ход)
         public double ProsperityAdditionToNatFund;  //Сколько процентов добавлять в нацфонд за один уровень благосостояния (0 - 100)
         public float PrivateWeeklyGrow;    //Еженедельный рост частного сектора (0-1%)
         public float PrivateLoadedWeeklyGrow;    //Еженедельный рост загруженного частного сектора (0-1%)
         //public float PrivateFactor;         //Во сколько раз дороже постройка юнитов за счёт частного сектора
-        public float MilitarySystemCostIncreasePerUpgrade;  //Увеличение стоимости производства военной системы при апгрейде
-        public float MilitarySystemCostDecreaseByUpgrade;   //Снижение стоимости производства военной системы от апгрейда типа 4
-        public int MilitarySystemCapacityUpgrade;   //Увеличение вместимости (body) или уменьшение занимаемого места других систем при апгрейде
-        public int MilitarySystemParamIncreaseByUpgrade;    //На сколько увеличивается один из двух параметров системы при апгрейде.
-        public List<string> MilitaryUnitClasses;   //Helicopter / Tank / Submarine ...
-        public List<string> MilitaryUnitTypes;     //Land / Sea / Air
 
         //Посольства
         public List<nsEmbassy.DiplomaticMission> DipMissionsList;   //Список всех существующих в игре дип. миссий
@@ -60,6 +55,17 @@ namespace ModEditor
         public List<nsMilitary.UnitClass> UnitClasses;  //Классы юнитов (танк, истребитель, пехота и тд.)
         public double GlobalDevLimit;   // Лимит выделенных средств на производство одного юнита (изучение одной системы). (В деньгах)
         public float InitialDevLimit;   // Общий лимит выделения средств из бюджета на производство/изучение в начале игры
+        public float MilitarySystemCostIncreasePerUpgrade;  //Увеличение стоимости производства военной системы при апгрейде (коэффициент)
+        public float MilitarySystemCostDecreaseByUpgrade;   //Снижение стоимости производства военной системы от апгрейда типа 4
+        public int MilitarySystemCapacityUpgrade;   //Увеличение вместимости (body) или уменьшение занимаемого места других систем при апгрейде
+        public int MilitarySystemParamIncreaseByUpgrade;    //На сколько увеличивается один из двух параметров системы при апгрейде.
+        public List<string> MilitaryUnitClasses;   //Helicopter / Tank / Submarine ...
+        public List<string> MilitaryUnitTypes;     //Land / Sea / Air
+        public int SelfInflToBuildBase;     //Предел своего влияния в нейтральной стране для возможности построить базу
+        public int DefaultMilBaseCapacity;  //Вместимость новой базы
+        public float InitMilBaseCost;       //Стоимость новой базы
+        public int UpgradeMilBaseCapacity;  //На сколько увеличивается вместимость военной базы при апгрейде
+        public float MilBaseUpgradeCostFactor;  //Увеличение стоимости апгрейда военной базы (коэффициент)
 
         //Combat
         public LocalizedDictionary<nsCombat.WarPhase> WarPhasesNames;   // Названия фаз войны
@@ -70,6 +76,8 @@ namespace ModEditor
         public int AggressorMoralPenalty;           //Штраф к морали за агрессию
         public int RetreatMoralPenalty;           //Штраф к морали за проигрыш в фазе войны
         public int NonePhaseTurns;              // Количество ходов без военных действий, после которого начинается контратака государства.
+        public float UnitMovementSpeed;     //Скорость перемещения военных юнитов между пулами
+        public int UnitMovementCost;        //Стоимость перемещения военных юнитов между пулами ($ за ход)
 
         private ModProperties()
         {
@@ -84,6 +92,22 @@ namespace ModEditor
         {
             if (Instance == null)
                 new ModProperties();
+        }
+
+        public Sprite GetRegimeIcon(int AuthorityID)
+        {
+            if (AuthorityID == -1 || AuthorityID >= AuthorityIcons.Count)
+                return NeutralRegimeIcon;
+
+            return AuthorityIcons[AuthorityID];
+        }
+
+        public string GetRegimeName(int AuthorityID)
+        {
+            if (AuthorityID == -1 || AuthorityID >= AuthorityIcons.Count)
+                return Assets.SimpleLocalization.LocalizationManager.Localize(NeutralRegimeNameID);
+
+            return Assets.SimpleLocalization.LocalizationManager.Localize(Authorities[AuthorityID]);
         }
     }
 }

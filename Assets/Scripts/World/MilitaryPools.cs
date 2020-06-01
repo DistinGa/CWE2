@@ -105,6 +105,7 @@ namespace nsMilitary
         int _RegID;
         int _AuthID;
         int _Capacity;
+        float _UpgradeCost;
 
         public MilitaryBase(int RegID, int AuthID, int Capacity)
         {
@@ -112,12 +113,19 @@ namespace nsMilitary
             _AuthID = AuthID;
             _Capacity = Capacity;
             _MilForces = new Dictionary<int, int>();
+            _UpgradeCost += ModEditor.ModProperties.Instance.InitMilBaseCost * ModEditor.ModProperties.Instance.MilBaseUpgradeCostFactor;
         }
 
         public int AuthID
         {
             set { _AuthID = value; }
             get { return _AuthID; }
+        }
+
+        public float UpgradeCost
+        {
+            set { _UpgradeCost = value; }
+            get { return _UpgradeCost; }
         }
     }
 

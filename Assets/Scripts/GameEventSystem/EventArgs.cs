@@ -59,4 +59,14 @@ namespace nsEventSystem
         public string BudgetItem;
         public nsWorld.Spends SpendsRef;
     }
+
+    public sealed class TwoInt_EventArgs : EventArgs
+    {
+        public int int1, int2;
+    }
+
+    public sealed class ThreeInt_EventArgs : EventArgs
+    {
+        public int int1, int2, int3;
+    }
 }

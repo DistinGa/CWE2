@@ -47,6 +47,14 @@ namespace nsMilitary
                 return _MilitaryManagerData.MilBases[ind];
         }
 
+        public float GetMilitaryBaseUpgradeCost(int ind)
+        {
+            if (ind < 0)
+                return ModEditor.ModProperties.Instance.InitMilBaseCost;
+            else
+                return _MilitaryManagerData.MilBases[ind].UpgradeCost;
+        }
+
         /// <summary>
         /// Возвращает домашний военный пул
         /// </summary>
@@ -271,6 +279,20 @@ namespace nsMilitary
             NewElectronicsSystem(sys);
 
             return true;
+        }
+
+        public void UpgradeMilitaryBase(int RegID, int AuthID)
+        {
+            var _milBase = GetMilitaryBase(World.TheWorld.Regions[RegID].MilitaryBaseID);
+            if (_milBase == null)
+            {
+                BuildMillitaryBase(RegID, AuthID);
+            }
+            else if(AuthID == _milBase.AuthID)
+            {
+                _milBase.AddCapacity(ModEditor.ModProperties.Instance.UpgradeMilBaseCapacity);
+                _milBase.UpgradeCost += ModEditor.ModProperties.Instance.InitMilBaseCost * ModEditor.ModProperties.Instance.MilBaseUpgradeCostFactor;
+            }
         }
 
         /// <summary>

@@ -1,10 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
+using nsEventSystem;
 
 public class EmbassyUI : MonoBehaviour
 {
+
     [SerializeField] GameObject prefab_EmbassyListRow;
 
     [SerializeField] Text Moral;
@@ -27,10 +30,80 @@ public class EmbassyUI : MonoBehaviour
     [SerializeField] Image AuthorityIcon;
     [SerializeField] Text Label;
 
-    [SerializeField] Transform transformCountryList;
+    [SerializeField] Image FlagTop;
+    [SerializeField] Image AuthorityIconTop;
+    [SerializeField] Image PartyFlagTop;
+    [SerializeField] Image MetaRegion;
+    [SerializeField] Text CountryNameTop;
+
+    [SerializeField] Transform parentCountryList;
 
     int curRegID = -1;
+    nsWorld.Region_Op region;
     List<EmbassyListRow> countryList;
+    private bool _prestigeMilBase;
+    private bool _natFundMilBase;
+    private bool _prestigeEmbassy;
+    private bool _natFundEmbassy;
+
+    public bool prestigeMilBase
+    {
+        get
+        {
+            return _prestigeMilBase;
+        }
+        set
+        {
+            _prestigeMilBase = value;
+            UpdateMilBase();
+        }
+    }
+
+    public bool natFundMilBase
+    {
+        get
+        {
+            return _natFundMilBase;
+        }
+        set
+        {
+            _natFundMilBase = value;
+            UpdateMilBase();
+        }
+    }
+
+    public bool prestigeEmbassy
+    {
+        get
+        {
+            return _prestigeEmbassy;
+        }
+        set
+        {
+            _prestigeEmbassy = value;
+            UpdateEmbassy();
+        }
+    }
+
+    public bool natFundEmbassy
+    {
+        get
+        {
+            return _natFundEmbassy;
+        }
+        set
+        {
+            _natFundEmbassy = value;
+            UpdateEmbassy();
+        }
+    }
+
+    private void Start()
+    {
+        countryList = new List<EmbassyListRow>();
+        InitialFillRows();
+        SelectCountry(countryList[0].RegID);
+    }
 
     public void SelectCountry(int regID)
     {
@@ -43,6 +116,99 @@ public class EmbassyUI : MonoBehaviour
         tmpRow = countryList.Find(e => e.RegID == regID);
         tmpRow.IsSelected = true;
         curRegID = regID;
+        region = nsWorld.World.TheWorld.Regions[curRegID];
+
+        //Заполнение данных в правой панели.
+        Moral.text = region.Moral.ToString();
+        Budget.text = region.RegionController == null ? region.GNP.ToString() : region.RegionController.NatFund.ToString();
+        MovementValue.text = region.MovementValue.ToString();
+        DevLevel.text = region.ProsperityLevel.ToString();
+        Points.text = region.Score.ToString();
+
+        UpdateMilBase();
+        UpdateEmbassy();
+
+        //Label.text = ;
+        //Leader.sprite = ;
+        //Focus.sprite = ;
+        //PartyFlag.sprite = ;
+
+        //Top
+        FlagTop.sprite = ModEditor.ModProperties.Instance.Regions[regID].Flag;
+        AuthorityIconTop.sprite = ModEditor.ModProperties.Instance.AuthorityIcons[region.Authority];
+        CountryNameTop.text = region.RegName;
+        MetaRegion.sprite = ModEditor.ModProperties.Instance.Regions[regID].MetaRegion;
+        //PartyFlagTop.sprite = ;
+    }
+
+    /// <summary>
+    /// Обновление контрола военной базы
+    /// </summary>
+    /// <param name="region"></param>
+    void UpdateMilBase()
+    {
+        var _milBase = nsMilitary.MilitaryManager.Instance.GetMilitaryBase(region.MilitaryBaseID);
+        bool _MilBaseInteractable = false;
+        if (_milBase != null)
+        {
+            MilBaseLoad.text = _milBase.FreeCapacity.ToString() + "/" + _milBase.Capacity.ToString();
+            MilBaseCost.text = _milBase.UpgradeCost.ToString();
+            MilBaseFlag.sprite = ModEditor.ModProperties.Instance.Regions[nsWorld.World.TheWorld.GetRegionController(_milBase.AuthID).HomelandID].Flag;
+            if (_milBase.AuthID == GameManager.GM.PlayerAuthority)
+            {
+                if ((_prestigeMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).Prestige >= _milBase.UpgradeCost) || (_natFundMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).NatFund >= _milBase.UpgradeCost))
+                    _MilBaseInteractable = true;
+            }
+        }
+        else
+        {
+            //Нет базы, можно построить свою.
+            MilBaseLoad.text = "";
+            MilBaseCost.text = ModEditor.ModProperties.Instance.InitMilBaseCost.ToString();
+            MilBaseFlag.sprite = ModEditor.ModProperties.Instance.Regions[region.RegID].Flag;
+            if (region.GetInfluence(GameManager.GM.PlayerAuthority) >= ModEditor.ModProperties.Instance.SelfInflToBuildBase)    //Если своё влияние больше требуемого для постройки
+            {
+                if ((_prestigeMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).Prestige >= ModEditor.ModProperties.Instance.InitMilBaseCost) || (_natFundMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).NatFund >= ModEditor.ModProperties.Instance.InitMilBaseCost))
+                    _MilBaseInteractable = true;
+            }
+        }
+        MilBaseBtn.interactable = _MilBaseInteractable;
+    }
+
+    /// <summary>
+    /// Обновление контрола посольства
+    /// </summary>
+    /// <param name="region"></param>
+    void UpdateEmbassy()
+    {
+        var _embassy = nsWorld.World.TheWorld.Embassies[region.RegID][GameManager.GM.PlayerAuthority];
+
+        EmbassyLevel.text = _embassy.EmbassyLevel.ToString();
+        EmbassyCost.text = _embassy.EmbassyUpgradeCost.ToString();
+
+        EmbassyFlag.sprite = ModEditor.ModProperties.Instance.Regions[region.RegID].Flag;
+        RegimeIcon.sprite = ModEditor.ModProperties.Instance.AuthorityIcons[region.Authority];
+        AuthorityIcon.sprite = ModEditor.ModProperties.Instance.AuthorityIcons[region.Authority];
+
+        bool _EmbassyInteractable = false;
+        if ((_prestigeEmbassy && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).Prestige >= _embassy.EmbassyUpgradeCost) || (_natFundEmbassy && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).NatFund >= _embassy.EmbassyUpgradeCost))
+            _EmbassyInteractable = true;
+
+        EmbassyBtn.interactable = _EmbassyInteractable;
+    }
+
+    /// <summary>
+    /// Сортировка дочерних строк списка стран.
+    /// </summary>
+    /// <param name="list"></param>
+    private void rowsSort(List<EmbassyListRow> list)
+    {
+        int i = 0;
+        foreach (var item in list)
+        {
+            item.transform.SetSiblingIndex(i);
+            i++;
+        }
     }
 
     /// <summary>
@@ -50,7 +216,8 @@ public class EmbassyUI : MonoBehaviour
     /// </summary>
     public void SortByName()
     {
-
+        var _regions = nsWorld.World.TheWorld.Regions;
+        rowsSort(countryList.OrderBy(r => _regions[r.RegID].RegName).ToList());
     }
 
     /// <summary>
@@ -58,7 +225,8 @@ public class EmbassyUI : MonoBehaviour
     /// </summary>
     public void SortByRegime()
     {
-
+        var _regions = nsWorld.World.TheWorld.Regions;
+        rowsSort(countryList.OrderBy(r => _regions[r.RegID].Authority).ToList());
     }
 
     /// <summary>
@@ -66,7 +234,8 @@ public class EmbassyUI : MonoBehaviour
     /// </summary>
     public void SortByProsperity()
     {
-
+        var _regions = nsWorld.World.TheWorld.Regions;
+        rowsSort(countryList.OrderBy(r => _regions[r.RegID].ProsperityLevel).ToList());
     }
 
     /// <summary>
@@ -74,7 +243,8 @@ public class EmbassyUI : MonoBehaviour
     /// </summary>
     public void SortByPoints()
     {
-
+        var _regions = nsWorld.World.TheWorld.Regions;
+        rowsSort(countryList.OrderBy(r => _regions[r.RegID].Score).ToList());
     }
 
     /// <summary>
@@ -94,39 +264,60 @@ public class EmbassyUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Заполнение строк с данным стран в левой панели.
+    /// Заполнение строк с данными стран в левой панели.
     /// </summary>
-    void UpdateRows()
+    void InitialFillRows()
     {
         EmbassyListRow tmpRow = null;
-        nsWorld.Region_Op region = null;
 
-        for (int i = 0; i < countryList.Count; i++)
+        var childCount = parentCountryList.childCount;
+        int i = 0;
+        foreach (var reg in nsWorld.World.TheWorld.Regions.Values)
         {
-            if (transformCountryList.childCount > i)
-                tmpRow = transformCountryList.GetChild(i).GetComponent<EmbassyListRow>();
+            if (childCount > i)
+                tmpRow = parentCountryList.GetChild(i).GetComponent<EmbassyListRow>();
             else
             {
-                var go = Instantiate(prefab_EmbassyListRow, transformCountryList);
+                var go = Instantiate(prefab_EmbassyListRow, parentCountryList);
                 tmpRow = go.GetComponent<EmbassyListRow>();
             }
 
-            //region = ;
+            countryList.Add(tmpRow);
+            UpdateRow(tmpRow, reg.RegID);
+            i++;
+        }
+    }
 
-            //image
-            //tmpRow.flag = ;
-            //tmpRow.regimeIcon = region.RegionController.;
-            //tmpRow.focusIcon = ;
-            //text
-            tmpRow.countryName.text = region.RegName;
-            tmpRow.prosperity.text = "";
-            tmpRow.points.text = "";
+    void UpdateRow(EmbassyListRow tmpRow, int RegID)
+    {
+        nsWorld.Region_Op region = null;
+        region = nsWorld.World.TheWorld.Regions[RegID];
 
-            tmpRow.warButton.SetActive(true);
+        //images:
+        tmpRow.flag.sprite = ModEditor.ModProperties.Instance.Regions[tmpRow.RegID].Flag;
+        tmpRow.regimeIcon.sprite = ModEditor.ModProperties.Instance.GetRegimeIcon(region.Authority);
+        //tmpRow.focusIcon = ;
+        //texts:
+        tmpRow.countryName.text = region.RegName;
+        tmpRow.prosperity.text = region.ProsperityLevel.ToString();
+        tmpRow.points.text = region.Score.ToString();
 
-            tmpRow.RegID = region.RegID;
+        tmpRow.warButton.SetActive(true);
 
-            tmpRow.EmbassyUI = this;
-}
+        tmpRow.RegID = region.RegID;
+
+        tmpRow.EmbassyUI = this;
+    }
+
+    public void UpgradeMilBase()
+    {
+        GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.UpgradeMilBaseOuter, new ThreeInt_EventArgs() { int1 = region.RegID, int2 = GameManager.GM.PlayerAuthority, int3 = natFundEmbassy ? 0 : 1 });
+        UpdateMilBase();
+    }
+
+    public void UpgradeEmbassy()
+    {
+        GameEventSystem.InvokeEvents(GameEventSystem.MyEventsTypes.UpgradeEmbassyOuter, new ThreeInt_EventArgs() { int1 = region.RegID, int2 = GameManager.GM.PlayerAuthority, int3 = natFundEmbassy ? 0 : 1 });
+        UpdateEmbassy();
     }
 }

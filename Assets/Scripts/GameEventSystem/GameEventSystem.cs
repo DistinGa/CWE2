@@ -55,6 +55,8 @@ namespace nsEventSystem
             public static readonly EventTypeClass AddNews = new EventTypeClass();    //Добавление новости.
             public static readonly EventTypeClass ChangeAuthority = new EventTypeClass();    //Смена политического режима.
             public static readonly EventTypeClass AddProsperity = new EventTypeClass();    //Изменение уровня благосостояния.
+            public static readonly EventTypeClass UpgradeEmbassyOuter = new EventTypeClass();    //Апгрейд посольства. Вызывается из интерфейса. Параметры: RegID, Authority, 0/1
+            public static readonly EventTypeClass UpgradeMilBaseOuter = new EventTypeClass();    //Апгрейд военной базы. Вызывается из интерфейса. Параметры: RegID, Authority
 
             //События с сылочными параметрами (не используются при сериализации)
             public static readonly EventTypeClass DeleteSpends = new EventTypeClass();    //Удаление выполненного заказа на постройку/изучение.
