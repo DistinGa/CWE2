@@ -22,7 +22,7 @@ namespace nsWorld
         /// </summary>
         public PoliticParty_Props Party_Prop
         {
-            get { return ModProperties.Instance.PoliticParties[ppID]; }
+            get { return GameManager.GM.GameProperties.PoliticParties[ppID]; }
         }
     }
 }

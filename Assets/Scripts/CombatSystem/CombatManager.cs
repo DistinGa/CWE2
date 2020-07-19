@@ -74,8 +74,8 @@ namespace nsCombat
                 Active = true,
                 RegID = RegID,
                 AttackerRegID = AttackerRegID,
-                CombatArea = ModEditor.ModProperties.Instance.CombatArea,
-                CenterCombatArea = ModEditor.ModProperties.Instance.CenterCombatArea,
+                CombatArea = GameManager.GM.GameProperties.CombatArea,
+                CenterCombatArea = GameManager.GM.GameProperties.CenterCombatArea,
                 MovementValue = nsWorld.World.TheWorld.GetRegion(RegID).MovementValue
             };
 

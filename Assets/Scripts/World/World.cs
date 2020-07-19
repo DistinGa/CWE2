@@ -38,9 +38,9 @@ namespace nsWorld
 
             new World();
             TheWorld._RegionControllers = new List<RegionController>();
-            for (int i = 0; i < ModEditor.ModProperties.Instance.ControlledRegions.Count; i++)
+            for (int i = 0; i < GameManager.GM.GameProperties.ControlledRegions.Count; i++)
             {
-                TheWorld._RegionControllers.Add(new RegionController(i, ModEditor.ModProperties.Instance.ControlledRegions[i]));
+                TheWorld._RegionControllers.Add(new RegionController(i, GameManager.GM.GameProperties.ControlledRegions[i]));
             }
 
             TheWorld.LoadRegions();
@@ -118,10 +118,10 @@ namespace nsWorld
 
         private void LoadRegions()
         {
-            for (int i = 0; i < ModEditor.ModProperties.Instance.Regions.Count; i++)
+            for (int i = 0; i < GameManager.GM.GameProperties.Regions.Count; i++)
             {
-                var reg = ModEditor.ModProperties.Instance.Regions[i];
-                _Regions.Add(reg.RegID, new Region_Op(reg.RegID, reg.SeaPoolID, FindRegionControllerForRegID(reg.RegID), ModEditor.ModProperties.Instance.Regions_Originals[i]));
+                var reg = GameManager.GM.GameProperties.Regions[i];
+                _Regions.Add(reg.RegID, new Region_Op(reg.RegID, reg.SeaPoolID, FindRegionControllerForRegID(reg.RegID), GameManager.GM.GameProperties.Regions_Originals[i]));
             }
         }
 

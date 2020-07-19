@@ -134,10 +134,10 @@ public class EmbassyUI : MonoBehaviour
         //PartyFlag.sprite = ;
 
         //Top
-        FlagTop.sprite = ModEditor.ModProperties.Instance.Regions[regID].Flag;
-        AuthorityIconTop.sprite = ModEditor.ModProperties.Instance.AuthorityIcons[region.Authority];
+        FlagTop.sprite = GameManager.GM.GameProperties.Regions[regID].Flag;
+        AuthorityIconTop.sprite = GameManager.GM.GameProperties.AuthorityIcons[region.Authority];
         CountryNameTop.text = region.RegName;
-        MetaRegion.sprite = ModEditor.ModProperties.Instance.Regions[regID].MetaRegion;
+        MetaRegion.sprite = GameManager.GM.GameProperties.Regions[regID].MetaRegion;
         //PartyFlagTop.sprite = ;
     }
 
@@ -153,7 +153,7 @@ public class EmbassyUI : MonoBehaviour
         {
             MilBaseLoad.text = _milBase.FreeCapacity.ToString() + "/" + _milBase.Capacity.ToString();
             MilBaseCost.text = _milBase.UpgradeCost.ToString();
-            MilBaseFlag.sprite = ModEditor.ModProperties.Instance.Regions[nsWorld.World.TheWorld.GetRegionController(_milBase.AuthID).HomelandID].Flag;
+            MilBaseFlag.sprite = GameManager.GM.GameProperties.Regions[nsWorld.World.TheWorld.GetRegionController(_milBase.AuthID).HomelandID].Flag;
             if (_milBase.AuthID == GameManager.GM.PlayerAuthority)
             {
                 if ((_prestigeMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).Prestige >= _milBase.UpgradeCost) || (_natFundMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).NatFund >= _milBase.UpgradeCost))
@@ -164,11 +164,11 @@ public class EmbassyUI : MonoBehaviour
         {
             //Нет базы, можно построить свою.
             MilBaseLoad.text = "";
-            MilBaseCost.text = ModEditor.ModProperties.Instance.InitMilBaseCost.ToString();
-            MilBaseFlag.sprite = ModEditor.ModProperties.Instance.Regions[region.RegID].Flag;
-            if (region.GetInfluence(GameManager.GM.PlayerAuthority) >= ModEditor.ModProperties.Instance.SelfInflToBuildBase)    //Если своё влияние больше требуемого для постройки
+            MilBaseCost.text = GameManager.GM.GameProperties.InitMilBaseCost.ToString();
+            MilBaseFlag.sprite = GameManager.GM.GameProperties.Regions[region.RegID].Flag;
+            if (region.GetInfluence(GameManager.GM.PlayerAuthority) >= GameManager.GM.GameProperties.SelfInflToBuildBase)    //Если своё влияние больше требуемого для постройки
             {
-                if ((_prestigeMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).Prestige >= ModEditor.ModProperties.Instance.InitMilBaseCost) || (_natFundMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).NatFund >= ModEditor.ModProperties.Instance.InitMilBaseCost))
+                if ((_prestigeMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).Prestige >= GameManager.GM.GameProperties.InitMilBaseCost) || (_natFundMilBase && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).NatFund >= GameManager.GM.GameProperties.InitMilBaseCost))
                     _MilBaseInteractable = true;
             }
         }
@@ -186,9 +186,9 @@ public class EmbassyUI : MonoBehaviour
         EmbassyLevel.text = _embassy.EmbassyLevel.ToString();
         EmbassyCost.text = _embassy.EmbassyUpgradeCost.ToString();
 
-        EmbassyFlag.sprite = ModEditor.ModProperties.Instance.Regions[region.RegID].Flag;
-        RegimeIcon.sprite = ModEditor.ModProperties.Instance.AuthorityIcons[region.Authority];
-        AuthorityIcon.sprite = ModEditor.ModProperties.Instance.AuthorityIcons[region.Authority];
+        EmbassyFlag.sprite = GameManager.GM.GameProperties.Regions[region.RegID].Flag;
+        RegimeIcon.sprite = GameManager.GM.GameProperties.AuthorityIcons[region.Authority];
+        AuthorityIcon.sprite = GameManager.GM.GameProperties.AuthorityIcons[region.Authority];
 
         bool _EmbassyInteractable = false;
         if ((_prestigeEmbassy && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).Prestige >= _embassy.EmbassyUpgradeCost) || (_natFundEmbassy && nsWorld.World.TheWorld.GetRegionController(GameManager.GM.PlayerAuthority).NatFund >= _embassy.EmbassyUpgradeCost))
@@ -294,8 +294,8 @@ public class EmbassyUI : MonoBehaviour
         region = nsWorld.World.TheWorld.Regions[RegID];
 
         //images:
-        tmpRow.flag.sprite = ModEditor.ModProperties.Instance.Regions[tmpRow.RegID].Flag;
-        tmpRow.regimeIcon.sprite = ModEditor.ModProperties.Instance.GetRegimeIcon(region.Authority);
+        tmpRow.flag.sprite = GameManager.GM.GameProperties.Regions[tmpRow.RegID].Flag;
+        tmpRow.regimeIcon.sprite = GameManager.GM.GameProperties.GetRegimeIcon(region.Authority);
         //tmpRow.focusIcon = ;
         //texts:
         tmpRow.countryName.text = region.RegName;

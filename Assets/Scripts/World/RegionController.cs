@@ -216,9 +216,9 @@ public class RegionController
         bi.Value += GetSpends(BudgetItem.BI_PrivateSector) * (1f + 0.01f * bi.LoadedWeeklyGrow);
 
         //Изменение популярности партий каждый ход
-        for (int i = 0; i < ModEditor.ModProperties.Instance.PoliticParties.Count; i++)
+        for (int i = 0; i < GameManager.GM.GameProperties.PoliticParties.Count; i++)
         {
-            float x = ModEditor.ModProperties.Instance.PoliticParties[i].GetPartyPopularityGain(this);
+            float x = GameManager.GM.GameProperties.PoliticParties[i].GetPartyPopularityGain(this);
             ControlledRegion.AddPartyPopularity(i, x);
         }
     }
@@ -264,7 +264,7 @@ public class RegionController
         double privateSpends = GetSpends(BudgetItem.BI_PrivateSector), nationalizeSpends = GetSpends(BudgetItem.BI_NatEconomy);
 
         _RegCData.NatFund += (economy - privateSpends - nationalizeSpends - social - Collaboration)
-            * 0.01d * (100d + ProsperityLevel * ModEditor.ModProperties.Instance.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
+            * 0.01d * (100d + ProsperityLevel * GameManager.GM.GameProperties.ProsperityAdditionToNatFund - _RegCData.Corruption - _RegCData.Inflation);
     }
 
     /// <summary>

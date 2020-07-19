@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour {
 
     int _PlayerAuthority;
     AI _AI;
+    ModProperties _GameProperties;
     Randomizer _Randomizer;
     GameStates _GState;
     float _TickDuration;
@@ -24,6 +25,12 @@ public class GameManager : MonoBehaviour {
     [SerializeField] MainWindow _mainWindow;
 
     #region Properties
+    public ModProperties GameProperties
+    {
+        get { return _GameProperties; }
+        private set { _GameProperties = value; }
+    }
+
     public GameStates GameState
     {
         get { return _GState; }
@@ -110,7 +117,7 @@ public class GameManager : MonoBehaviour {
 
     private void Start()
     {
-        _TickDuration = ModProperties.Instance.TickInterval;
+        _TickDuration = GameProperties.TickInterval;
     }
 
     private void Update()
@@ -121,7 +128,7 @@ public class GameManager : MonoBehaviour {
 
             if (_TickDuration <= 0)
             {
-                _TickDuration = ModProperties.Instance.TickInterval;
+                _TickDuration = GameProperties.TickInterval;
 
                 StartCoroutine(GameTurn());
             }
@@ -161,7 +168,7 @@ public class GameManager : MonoBehaviour {
 
     public void StartGame(bool Load)
     {
-        ModProperties.CreateModProperties();
+        _GameProperties = ModProperties.CreateModProperties();
         World.CreateWorld();
         MilitaryManager.CreateMilitaryManager(new MilitaryManager_Ds());
 

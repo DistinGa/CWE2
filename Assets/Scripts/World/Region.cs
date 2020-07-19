@@ -76,10 +76,10 @@ namespace nsWorld
             set
             {
                 _RegData.ProsperityLevel = value;
-                if (_RegData.ProsperityLevel < -ModEditor.ModProperties.Instance.ProspMaxValue)
-                    _RegData.ProsperityLevel = -ModEditor.ModProperties.Instance.ProspMaxValue;
-                if (_RegData.ProsperityLevel > ModEditor.ModProperties.Instance.ProspMaxValue)
-                    _RegData.ProsperityLevel = ModEditor.ModProperties.Instance.ProspMaxValue;
+                if (_RegData.ProsperityLevel < -GameManager.GM.GameProperties.ProspMaxValue)
+                    _RegData.ProsperityLevel = -GameManager.GM.GameProperties.ProspMaxValue;
+                if (_RegData.ProsperityLevel > GameManager.GM.GameProperties.ProspMaxValue)
+                    _RegData.ProsperityLevel = GameManager.GM.GameProperties.ProspMaxValue;
             }
         }
 
@@ -227,14 +227,14 @@ namespace nsWorld
                 int add = 0;
                 if (_RegData.Authority == -1)
                 {
-                    add = rnd.GetRndRange(ModEditor.ModProperties.Instance.GNP_Neutral_Min, ModEditor.ModProperties.Instance.GNP_Neutral_Max + 1);
+                    add = rnd.GetRndRange(GameManager.GM.GameProperties.GNP_Neutral_Min, GameManager.GM.GameProperties.GNP_Neutral_Max + 1);
                 }
                 else
                 {
                     if (World.TheWorld.GetRegionController(_RegData.Authority).ProsperityLevel > 0)
-                        add = rnd.GetRndRange(ModEditor.ModProperties.Instance.GNP_HighDevLevel_Min, ModEditor.ModProperties.Instance.GNP_HighDevLevel_Max + 1);
+                        add = rnd.GetRndRange(GameManager.GM.GameProperties.GNP_HighDevLevel_Min, GameManager.GM.GameProperties.GNP_HighDevLevel_Max + 1);
                     else
-                        add = rnd.GetRndRange(ModEditor.ModProperties.Instance.GNP_LowDevLevel_Min, ModEditor.ModProperties.Instance.GNP_LowDevLevel_Max + 1);
+                        add = rnd.GetRndRange(GameManager.GM.GameProperties.GNP_LowDevLevel_Min, GameManager.GM.GameProperties.GNP_LowDevLevel_Max + 1);
                 }
 
                 _RegData.GNP += add;
@@ -242,8 +242,8 @@ namespace nsWorld
                 // Постройка нейтральных юнитов
 
                 // Популярность партий раз в год
-                int _id = rnd.GetRndMax(ModEditor.ModProperties.Instance.PoliticParties.Count);
-                float x = ModEditor.ModProperties.Instance.PoliticParties[_id].GetPartyPopularityGain(_RegController);
+                int _id = rnd.GetRndMax(GameManager.GM.GameProperties.PoliticParties.Count);
+                float x = GameManager.GM.GameProperties.PoliticParties[_id].GetPartyPopularityGain(_RegController);
                 AddPartyPopularity(_id, x);
             }
 
@@ -257,7 +257,7 @@ namespace nsWorld
                     _idr -= 1;
                 else _idr += 1;
             }
-            AddRadicalsPopularity(_idr, ModEditor.ModProperties.Instance.AnnualRadicalsPopularityGain);
+            AddRadicalsPopularity(_idr, GameManager.GM.GameProperties.AnnualRadicalsPopularityGain);
         }
 
         void ParlamentProcess()
@@ -290,7 +290,7 @@ namespace nsWorld
 
         void PartyGetNewLaw(PoliticParty party)
         {
-            ModEditor.ModProperties modProperties = ModEditor.ModProperties.Instance;
+            ModEditor.ModProperties modProperties = GameManager.GM.GameProperties;
 
             var party_Prop = party.Party_Prop;
 

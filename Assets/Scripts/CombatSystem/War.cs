@@ -53,7 +53,7 @@ namespace nsCombat
                 // Проверка условия для контратаки.
                 if (item.CurrentPhase == WarPhase.None)
                 {
-                    if (++item.NonePhaseTurns >= ModEditor.ModProperties.Instance.NonePhaseTurns)
+                    if (++item.NonePhaseTurns >= GameManager.GM.GameProperties.NonePhaseTurns)
                     {
                         CounterAttack(item);
                     }
@@ -89,7 +89,7 @@ namespace nsCombat
             newWar.AggressorAuthorityID = aggressorAuthorityID;
 
             newWar.InitiatorRadicals = initiatorRadicals;
-            newWar.AttackerMoralPenalty = ModEditor.ModProperties.Instance.AggressorMoralPenalty;
+            newWar.AttackerMoralPenalty = GameManager.GM.GameProperties.AggressorMoralPenalty;
             newWar.DefenderMoralPenalty = 0;
         }
 
@@ -275,15 +275,15 @@ namespace nsCombat
             _combat.RegID = war.RegionID;
             _combat.AttackerUnits = new Dictionary<int, CombatUnit>();
             _combat.DefenderUnits = new Dictionary<int, CombatUnit>();
-            _combat.CombatArea = ModEditor.ModProperties.Instance.CombatArea;
-            _combat.CenterCombatArea = ModEditor.ModProperties.Instance.CenterCombatArea;
+            _combat.CombatArea = GameManager.GM.GameProperties.CombatArea;
+            _combat.CenterCombatArea = GameManager.GM.GameProperties.CenterCombatArea;
             _combat.MovementValue = World.TheWorld.GetRegion(war.RegionID).MovementValue;
 
             _combat.ReliefPropertiesID = -1;
-            if (ModEditor.ModProperties.Instance.RegPhaseReliefProperties.ContainsKey(war.RegionID))
+            if (GameManager.GM.GameProperties.RegPhaseReliefProperties.ContainsKey(war.RegionID))
             {
-                if(ModEditor.ModProperties.Instance.RegPhaseReliefProperties[war.RegionID].ContainsKey(phase))
-                    _combat.ReliefPropertiesID = ModEditor.ModProperties.Instance.RegPhaseReliefProperties[war.RegionID][phase];
+                if(GameManager.GM.GameProperties.RegPhaseReliefProperties[war.RegionID].ContainsKey(phase))
+                    _combat.ReliefPropertiesID = GameManager.GM.GameProperties.RegPhaseReliefProperties[war.RegionID][phase];
             }
 
             switch (phase)
@@ -366,7 +366,7 @@ namespace nsCombat
                 {
                     // Фаза пройдена.
                     warData.CompletedWarPhases.Add(warData.CurrentPhase);
-                    warData.DefenderMoralPenalty += ModEditor.ModProperties.Instance.RetreatMoralPenalty;
+                    warData.DefenderMoralPenalty += GameManager.GM.GameProperties.RetreatMoralPenalty;
 
                     // Если это фаза вторжения с моря, открывается возможность переброски войск через морской пул.
                     if (warData.CurrentPhase == WarPhase.SeaBattle && attackerWin)
@@ -377,7 +377,7 @@ namespace nsCombat
             }
             else
             {
-                warData.AttackerMoralPenalty += ModEditor.ModProperties.Instance.RetreatMoralPenalty;
+                warData.AttackerMoralPenalty += GameManager.GM.GameProperties.RetreatMoralPenalty;
                 // Фаза делается непройденной.
                 if (warData.CompletedWarPhases.Contains(warData.CurrentPhase))
                     warData.CompletedWarPhases.Remove(warData.CurrentPhase);

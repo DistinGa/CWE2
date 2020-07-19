@@ -83,7 +83,7 @@ namespace ModEditor
             //В неконтролируемых регионах популярность меняется случайным образом раз в год, поэтому на YEAR_TURNS_COUNT не делим.
             if (RegionController == null)
             {
-                return ModProperties.Instance.AnnualPartyPopularityGain;
+                return GameManager.GM.GameProperties.AnnualPartyPopularityGain;
             }
 
             //Для контролируемых стран - каждый ход
@@ -94,29 +94,29 @@ namespace ModEditor
                 case PoliticPartyType.NatFundGap:
                     if (RegionController.NatFund < 0)
                     {
-                        res = Math.Round((RegionController.NatFund / ModProperties.Instance.RelativeNatFundToPartyGrow) * ModProperties.Instance.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT);
+                        res = Math.Round((RegionController.NatFund / GameManager.GM.GameProperties.RelativeNatFundToPartyGrow) * GameManager.GM.GameProperties.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT);
                     }
                     break;
                 case PoliticPartyType.Prosperity:
                     if (RegionController.ProsperityLevel < 0)
                     {
-                        res = Math.Round(-(float)RegionController.ProsperityLevel / ModProperties.Instance.ProspMaxValue * ModProperties.Instance.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT);
+                        res = Math.Round(-(float)RegionController.ProsperityLevel / GameManager.GM.GameProperties.ProspMaxValue * GameManager.GM.GameProperties.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT);
                     }
                     break;
                 case PoliticPartyType.CorInf:
                     int CorInf = RegionController.Corruption + RegionController.Inflation;
                     if (CorInf > 0)
                     {
-                        res = Math.Round(CorInf / 200f * ModProperties.Instance.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT);
+                        res = Math.Round(CorInf / 200f * GameManager.GM.GameProperties.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT);
                     }
                     break;
                 case PoliticPartyType.SelfInfluenceMostBigger:
                     if (RegionController.ControlledRegion.IsMostBiggerInfluence(RegionController.AuthorityID))
-                        res = ModProperties.Instance.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT;
+                        res = GameManager.GM.GameProperties.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT;
                     break;
                 case PoliticPartyType.SelfInfluenceMostSmaller:
                     if (RegionController.ControlledRegion.IsMostSmallerInfluence(RegionController.AuthorityID))
-                        res = ModProperties.Instance.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT;
+                        res = GameManager.GM.GameProperties.AnnualPartyPopularityGain / ModProperties.YEAR_TURNS_COUNT;
                     break;
                 default:
                     break;

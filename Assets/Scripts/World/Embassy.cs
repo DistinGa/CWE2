@@ -62,7 +62,7 @@ namespace nsEmbassy
 
         public double EmbassyUpgradeCost
         {
-            get { return ModProperties.Instance.InitEmbassyUpgradeCost * Math.Pow(ModProperties.Instance.EmbassyUpgradeCostFactor, EmbassyLevel); }
+            get { return GameManager.GM.GameProperties.InitEmbassyUpgradeCost * Math.Pow(GameManager.GM.GameProperties.EmbassyUpgradeCostFactor, EmbassyLevel); }
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace nsEmbassy
         /// </summary>
         public bool HighestEmbassy
         {
-            get { return EmbassyLevel + 1 >= ModProperties.Instance.EmbassyLevelSizes.Count; }
+            get { return EmbassyLevel + 1 >= GameManager.GM.GameProperties.EmbassyLevelSizes.Count; }
         }
 
         public Embassy(int pAuthorityID, int pRegionID, int pEmbassyLevel, int pDipFocusID)
@@ -80,7 +80,7 @@ namespace nsEmbassy
             embassyLevel = pEmbassyLevel;
             dipFocusID = pDipFocusID;
 
-            int cnt = ModProperties.Instance.EmbassyLevelSizes[EmbassyLevel];
+            int cnt = GameManager.GM.GameProperties.EmbassyLevelSizes[EmbassyLevel];
             for (int i = 0; i < cnt; i++)
             {
                 SpyNet newSN = new SpyNet(pRegionID, pAuthorityID);
@@ -100,7 +100,7 @@ namespace nsEmbassy
         {
             EmbassyLevel++;
             //Добавление сетей
-            int cnt = ModProperties.Instance.EmbassyLevelSizes[EmbassyLevel] - SpyNets.Count;
+            int cnt = GameManager.GM.GameProperties.EmbassyLevelSizes[EmbassyLevel] - SpyNets.Count;
             for (int i = 0; i < cnt; i++)
             {
                 SpyNet newSN = new SpyNet(RegionID, AuthorityID);
@@ -163,7 +163,7 @@ namespace nsEmbassy
             successLevel = 0;
             speedLevel = 0;
             dipMissionID = NULLDIPMISSION;
-            success = ModProperties.Instance.InitSpyNetSuccess;
+            success = GameManager.GM.GameProperties.InitSpyNetSuccess;
 
             GameEventSystem.Subscribe(GameEventSystem.MyEventsTypes.TurnActions, OnTurn);
         }
@@ -247,18 +247,18 @@ namespace nsEmbassy
         {
             get
             {
-                return ModProperties.Instance.DipMissionsList[dipMissionID];
+                return GameManager.GM.GameProperties.DipMissionsList[dipMissionID];
             }
         }
 
         public double SuccessUpgradeCost
         {
-            get { return ModProperties.Instance.InitSpyNetUpgradeCost * Math.Pow(ModProperties.Instance.EmbassyUpgradeCostFactor, SuccessLevel); }
+            get { return GameManager.GM.GameProperties.InitSpyNetUpgradeCost * Math.Pow(GameManager.GM.GameProperties.EmbassyUpgradeCostFactor, SuccessLevel); }
         }
 
         public double SpeedUpgradeCost
         {
-            get { return ModProperties.Instance.InitSpyNetUpgradeCost * Math.Pow(ModProperties.Instance.EmbassyUpgradeCostFactor, SpeedLevel); }
+            get { return GameManager.GM.GameProperties.InitSpyNetUpgradeCost * Math.Pow(GameManager.GM.GameProperties.EmbassyUpgradeCostFactor, SpeedLevel); }
         }
 
         void InvokeOnChange()
@@ -278,7 +278,7 @@ namespace nsEmbassy
                 return; //Не хватает престижа.
 
             SuccessLevel++;
-            success += (int)((100 - success) * ModProperties.Instance.SpyNetSuccessUpgradePercent); //асимптотическое приближение к 100%
+            success += (int)((100 - success) * GameManager.GM.GameProperties.SpyNetSuccessUpgradePercent); //асимптотическое приближение к 100%
         }
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace nsEmbassy
 
         public void StartDipMission(int pMissionID)
         {
-            if (pMissionID < 0 || pMissionID >= ModProperties.Instance.DipMissionsList.Count)
+            if (pMissionID < 0 || pMissionID >= GameManager.GM.GameProperties.DipMissionsList.Count)
                 return;
 
             dipMissionID = pMissionID;
@@ -313,11 +313,11 @@ namespace nsEmbassy
             //Блокировка сети контр-шпионажем
             if (DelayTime > 0)
             {
-                DelayTime -= 1f + (speedLevel * ModProperties.Instance.SpyNetSpeedUpgradePercent) * 0.01f;
+                DelayTime -= 1f + (speedLevel * GameManager.GM.GameProperties.SpyNetSpeedUpgradePercent) * 0.01f;
                 return;
             }
 
-            restTime -= 1f + (speedLevel * ModProperties.Instance.SpyNetSpeedUpgradePercent)*0.01f;
+            restTime -= 1f + (speedLevel * GameManager.GM.GameProperties.SpyNetSpeedUpgradePercent)*0.01f;
             if (restTime <= 0)
             {
                 ExecuteMission();
@@ -349,7 +349,7 @@ namespace nsEmbassy
         /// <param name="pEnemySpyNet"></param>
         void DelaySpyNet(SpyNet pEnemySpyNet)
         {
-            DelayTime = ModProperties.Instance.SpyNetCounterEspionageDelayTime * (1f + (pEnemySpyNet.SpeedLevel - SpeedLevel) * ModProperties.Instance.SpyNetSpeedUpgradePercent * 0.01f);
+            DelayTime = GameManager.GM.GameProperties.SpyNetCounterEspionageDelayTime * (1f + (pEnemySpyNet.SpeedLevel - SpeedLevel) * GameManager.GM.GameProperties.SpyNetSpeedUpgradePercent * 0.01f);
         }
     }
 }

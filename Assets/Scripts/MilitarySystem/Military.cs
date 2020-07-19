@@ -263,7 +263,7 @@ namespace nsMilitary
         {
             UnitSystemBaseClass res = new UnitSystemBaseClass(Authority, SystemName, Version, InitCost, Cost, Load, MilitaryGeneration, true, true, UpgradeCount + 1, MasterClasses, Par1, Par2);
 
-            ModEditor.ModProperties modProperties = ModEditor.ModProperties.Instance;
+            ModEditor.ModProperties modProperties = GameManager.GM.GameProperties;
 
             if (upgradeType == 4)   //Снижение стоимости производства
                 Cost -= -InitCost * modProperties.MilitarySystemCostDecreaseByUpgrade;

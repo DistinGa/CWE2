@@ -113,7 +113,7 @@ namespace nsMilitary
             _AuthID = AuthID;
             _Capacity = Capacity;
             _MilForces = new Dictionary<int, int>();
-            _UpgradeCost += ModEditor.ModProperties.Instance.InitMilBaseCost * ModEditor.ModProperties.Instance.MilBaseUpgradeCostFactor;
+            _UpgradeCost += GameManager.GM.GameProperties.InitMilBaseCost * GameManager.GM.GameProperties.MilBaseUpgradeCostFactor;
         }
 
         public int AuthID

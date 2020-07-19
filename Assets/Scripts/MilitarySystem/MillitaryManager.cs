@@ -50,7 +50,7 @@ namespace nsMilitary
         public float GetMilitaryBaseUpgradeCost(int ind)
         {
             if (ind < 0)
-                return ModEditor.ModProperties.Instance.InitMilBaseCost;
+                return GameManager.GM.GameProperties.InitMilBaseCost;
             else
                 return _MilitaryManagerData.MilBases[ind].UpgradeCost;
         }
@@ -290,8 +290,8 @@ namespace nsMilitary
             }
             else if(AuthID == _milBase.AuthID)
             {
-                _milBase.AddCapacity(ModEditor.ModProperties.Instance.UpgradeMilBaseCapacity);
-                _milBase.UpgradeCost += ModEditor.ModProperties.Instance.InitMilBaseCost * ModEditor.ModProperties.Instance.MilBaseUpgradeCostFactor;
+                _milBase.AddCapacity(GameManager.GM.GameProperties.UpgradeMilBaseCapacity);
+                _milBase.UpgradeCost += GameManager.GM.GameProperties.InitMilBaseCost * GameManager.GM.GameProperties.MilBaseUpgradeCostFactor;
             }
         }
 
@@ -338,7 +338,7 @@ namespace nsMilitary
 
             if (region.MilitaryBaseID < 0)
             {
-                _MilitaryManagerData.MilBases.Add(RegID, new MilitaryBase(RegID, AuthID, ModEditor.ModProperties.Instance.DefaultMilBaseCapacity));
+                _MilitaryManagerData.MilBases.Add(RegID, new MilitaryBase(RegID, AuthID, GameManager.GM.GameProperties.DefaultMilBaseCapacity));
                 region.RegisterMilBase(_MilitaryManagerData.MilBases.Count - 1);
             }
         }

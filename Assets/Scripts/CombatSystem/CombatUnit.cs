@@ -61,8 +61,8 @@ namespace nsCombat
 
                     if (_ReliefPropertiesID > -1)
                     {
-                        if (ModEditor.ModProperties.Instance.ReliefProperties.ContainsKey(_ReliefPropertiesID))
-                            _ClassPenalty = ModEditor.ModProperties.Instance.ReliefProperties[_ReliefPropertiesID].GetClassPenalties(ClassID, _IsAttacker);
+                        if (GameManager.GM.GameProperties.ReliefProperties.ContainsKey(_ReliefPropertiesID))
+                            _ClassPenalty = GameManager.GM.GameProperties.ReliefProperties[_ReliefPropertiesID].GetClassPenalties(ClassID, _IsAttacker);
                     }
                 }
 

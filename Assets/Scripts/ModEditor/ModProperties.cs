@@ -88,10 +88,12 @@ namespace ModEditor
         /// Инициализация экземпляра.
         /// </summary>
         /// <param name="FileName">Имя файла, из которого загружаются настройки. Если опущено, загружаются дефолтные, заданные при создании мода.</param>
-        public static void CreateModProperties(string FileName = "")
+        public static ModProperties CreateModProperties(string FileName = "")
         {
             if (Instance == null)
                 new ModProperties();
+
+            return Instance;
         }
 
         public Sprite GetRegimeIcon(int AuthorityID)
