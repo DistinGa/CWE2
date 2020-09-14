@@ -7,7 +7,7 @@ namespace nsMilitary
 {
     public class MilitaryPool
     {
-        public bool Active;
+        public bool Active; // Используется для активации морского пула для переброски через него сухопутных юнитов
         protected int _Capacity;
         protected Dictionary<int, int> _MilForces;  //Key - MilitaryUnit ID; Value - amount
 
@@ -61,7 +61,7 @@ namespace nsMilitary
             get { return _Capacity; }
         }
 
-        //Свободное место на базе (d морском пуле для сухопутных юнитов)
+        //Свободное место на базе (в морском пуле для сухопутных юнитов)
         public int FreeCapacity
         {
             get

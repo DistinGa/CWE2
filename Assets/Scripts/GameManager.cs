@@ -15,7 +15,6 @@ public class GameManager : MonoBehaviour {
 
     int _PlayerAuthority;
     AI _AI;
-    ModProperties _GameProperties;
     Randomizer _Randomizer;
     GameStates _GState;
     float _TickDuration;
@@ -23,12 +22,13 @@ public class GameManager : MonoBehaviour {
     bool _f_WaitTimeIsOut;  //Время ожидания хода вышло
     WorldMapGlobe _map;
     [SerializeField] MainWindow _mainWindow;
+    [SerializeField] Settings _Settings;
 
     #region Properties
     public ModProperties GameProperties
     {
-        get { return _GameProperties; }
-        private set { _GameProperties = value; }
+        get { return _Settings.ModProperties; }
+        private set { _Settings.ModProperties = value; }
     }
 
     public GameStates GameState
@@ -168,7 +168,6 @@ public class GameManager : MonoBehaviour {
 
     public void StartGame(bool Load)
     {
-        _GameProperties = ModProperties.CreateModProperties();
         World.CreateWorld();
         MilitaryManager.CreateMilitaryManager(new MilitaryManager_Ds());
 

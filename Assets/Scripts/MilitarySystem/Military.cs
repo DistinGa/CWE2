@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Sirenix.OdinInspector;
 
 namespace nsMilitary
 {
+    [ShowOdinSerializedPropertiesInInspector]
     public class MilitaryUnit : IMilitaryUnit
     {
         public string UnitName { get; private set; }
@@ -221,8 +223,8 @@ namespace nsMilitary
     {
         private double _InitCost; //Начальная стоимость
 
-        public int Authority;
         public string SystemName;
+        public int Authority;
         public int Version;
         public double Cost;
         public int Load;

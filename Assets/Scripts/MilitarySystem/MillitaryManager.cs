@@ -369,13 +369,13 @@ namespace nsMilitary
         public Dictionary<int, SystemElectronics> ElectronicsSystems; //Список всех существующих SystemElectronics в игре
         public List<UnitOnTheWay> MilitaryUnitsOnTheWay; //Юниты в процессе перемещения
         public Dictionary<int, MilitaryPool> MainPools;    //Домашние пулы (индекс - индекс региона)
-        public List<SeaPool> _SeaPools;
+        public Dictionary<int, SeaPool> _SeaPools;
 
         public MilitaryManager_Ds()
         {
             MilitaryUnits = new Dictionary<int, IMilitaryUnit>();
             MilBases = new Dictionary<int, MilitaryBase>();
-            _SeaPools = new List<SeaPool>();
+            _SeaPools = new Dictionary<int, SeaPool>();
         }
 
     }

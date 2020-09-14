@@ -350,7 +350,7 @@ namespace nsWorld
             if (amount > 0)
                 actualAmount = Math.Min(amount, 100 - _RegData.Parties[partieID].Popularity);
             else
-                actualAmount = Math.Min(amount, _RegData.Parties[partieID].Popularity);
+                actualAmount = Math.Max(amount, -_RegData.Parties[partieID].Popularity);
 
             _RegData.Parties[partieID].Popularity += actualAmount;
             actualAmount *= -1f;
