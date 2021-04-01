@@ -398,6 +398,9 @@ namespace nsCombat
                 if (!combatData.Active)
                     return;
 
+                combatData.AttackerMoral -= combatData.AttackerMoralPenalty;
+                combatData.DefenderMoral -= combatData.DefenderMoralPenalty;
+
                 List<int> _tmpList = new List<int>();
                 foreach (CombatUnit item in combatData.AttackerUnits.Values.ToList())
                 {

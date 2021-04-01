@@ -96,11 +96,19 @@ namespace nsEmbassy
         /// <summary>
         /// Апгрейд посольства.
         /// </summary>
-        public void Upgrade()
+        /// <param name="SourceID">0 - из нацфонда; 1 - из престижа</param>
+        public void Upgrade(int SourceID = 0)
         {
+            if (EmbassyLevel + 1 >= ModProperties.Instance.EmbassyLevelSizes.Count)
+                return; //Посольство и так на последнем уровне
+
+            RegionController RC = nsWorld.World.TheWorld.GetRegionController(AuthorityID);
+            if (!RC.PayCount(SourceID, EmbassyUpgradeCost))
+                return; //Не хватает престижа.
+
             EmbassyLevel++;
             //Добавление сетей
-            int cnt = GameManager.GM.GameProperties.EmbassyLevelSizes[EmbassyLevel] - SpyNets.Count;
+            int cnt = ModProperties.Instance.EmbassyLevelSizes[EmbassyLevel] - SpyNets.Count;
             for (int i = 0; i < cnt; i++)
             {
                 SpyNet newSN = new SpyNet(RegionID, AuthorityID);

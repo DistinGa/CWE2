@@ -149,10 +149,12 @@ namespace nsWorld
         public int CurrentTurn;
         public int GlobalDevLevel;
         public Dictionary<int, List<nsEmbassy.Embassy>> EmbassiesList;    //Key - RegionID, ListIndex - AuthorityID
+        public Dictionary<int, nsCombat.CombatData> Combats; //Все идущие в данный момент бои (Key - индекс региона, где идёт война (Defender)).
 
         public World_Ds()
         {
             EmbassiesList = new Dictionary<int, List<nsEmbassy.Embassy>>();
+            Combats = new Dictionary<int, nsCombat.CombatData>();
         }
     }
 }

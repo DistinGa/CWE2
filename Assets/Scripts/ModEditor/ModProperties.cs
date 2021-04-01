@@ -8,6 +8,8 @@ namespace ModEditor
     [System.Serializable]
     public class ModProperties
     {
+        public static ModProperties Instance;
+
         private LocalizedDictionary<nsCombat.WarPhase> _LocalizedWarPhasesNames;    //Для кеширования
 
         public const float YEAR_TURNS_COUNT = 48; //Количество ходов в году (float, потому что на это число чаще всего будут делить целые числа)
@@ -46,7 +48,8 @@ namespace ModEditor
         [Tooltip("Еженедельный рост загруженного частного сектора (0-1%)")]
         [Range(0, 1)]
         public float PrivateLoadedWeeklyGrow;    //Еженедельный рост загруженного частного сектора (0-1%)
-        //public float PrivateFactor;         //Во сколько раз дороже постройка юнитов за счёт частного сектора
+        public float PrivateFactor;         //Во сколько раз дороже постройка юнитов за счёт частного сектора
+        public List<string> MilitaryUnitClasses;   //Helicopter / Tank / Submarine ...
 
         //Посольства
         [Header("Ambassy")]
@@ -184,6 +187,21 @@ namespace ModEditor
 
                 return _LocalizedWarPhasesNames;
             }
+        }
+
+        private ModProperties()
+        {
+            Instance = this;
+        }
+
+        /// <summary>
+        /// Инициализация экземпляра.
+        /// </summary>
+        /// <param name="FileName">Имя файла, из которого загружаются настройки. Если опущено, загружаются дефолтные, заданные при создании мода.</param>
+        public static void CreateModProperties(string FileName = "")
+        {
+            if (Instance == null)
+                new ModProperties();
         }
     }
 

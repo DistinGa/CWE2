@@ -116,6 +116,18 @@ namespace nsMilitary
             _UpgradeCost += GameManager.GM.GameProperties.InitMilBaseCost * GameManager.GM.GameProperties.MilBaseUpgradeCostFactor;
         }
 
+        //Вместимость базы
+        public int Capacity
+        {
+            get { return _Capacity; }
+        }
+
+        //Свободное место на базе
+        public int FreeCapacity
+        {
+            get { return Capacity - GetUnitsAmount(); }
+        }
+
         public int AuthID
         {
             set { _AuthID = value; }
@@ -126,6 +138,11 @@ namespace nsMilitary
         {
             set { _UpgradeCost = value; }
             get { return _UpgradeCost; }
+        }
+
+        public void AddCapacity(int Amount)
+        {
+            _Capacity += Amount;
         }
     }
 

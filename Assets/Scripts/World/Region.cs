@@ -15,7 +15,7 @@ namespace nsWorld
 
         public Region_Op(int RegID, int SeaPoolID, RegionController RegController, Region_Ds RegData)
         {
-            //_RegData = new Region_Ds();
+            _RegData = new Region_Ds();
             _RegController = RegController;
             _RegID = RegID;
             _SeaPoolID = SeaPoolID;
